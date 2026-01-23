@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
     { id: View.ROLES_PERMISSIONS, label: 'Access', icon: ShieldCheck, category: 'accounts' },
     { id: View.RESOURCES, label: 'Library', icon: FileSearch, category: 'resources' },
     { id: View.EDIT_CERTIFICATES, label: 'Branding', icon: Award, category: 'certificates' },
-    { id: View.EDIT_CERTIFICATES, label: 'Accounts', icon: UserPlus, category: 'accounts' },
+    { id: View.ACCOUNT_CREATION, label: 'Accounts', icon: UserPlus, category: 'accounts' },
   ].filter(item => {
     return checkPermission(item.category as any, 'view');
   });

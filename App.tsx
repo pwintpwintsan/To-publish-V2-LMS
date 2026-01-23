@@ -141,7 +141,10 @@ const App: React.FC = () => {
       case View.CENTER_LIST:
         return <CenterListView onEnterCenter={(id) => { setSelectedCenterId(id); setCurrentView(View.CENTER_DETAIL); }} />;
       case View.CENTER_PROFILE:
-        return <CenterProfileView activeRole={activeRole} />;
+        return <CenterProfileView 
+                  activeRole={activeRole} 
+                  onAddLearner={() => setCurrentView(View.ACCOUNT_CREATION)}
+                />;
       case View.CENTER_DETAIL:
         return selectedCenterId ? <CenterDetailView 
                                     centerId={selectedCenterId} 
@@ -173,7 +176,11 @@ const App: React.FC = () => {
                   onCourseClick={(id) => { setSelectedCourseId(id); setCurrentView(View.PROGRAM_SYLLABUS); }}
                 />;
       case View.STUDENTS:
-        return <StudentsView onStudentClick={(id) => { setSelectedStudentId(id); setCurrentView(View.STUDENT_DETAIL); }} checkPermission={checkPermission} />;
+        return <StudentsView 
+                  onStudentClick={(id) => { setSelectedStudentId(id); setCurrentView(View.STUDENT_DETAIL); }} 
+                  onAddStudent={() => setCurrentView(View.ACCOUNT_CREATION)}
+                  checkPermission={checkPermission} 
+                />;
       case View.GRADES:
         return <GradesView />;
       case View.REPORTS:
@@ -201,7 +208,7 @@ const App: React.FC = () => {
       case View.EDIT_CERTIFICATES:
         return <EditCertificatesView />;
       case View.ACCOUNT_CREATION:
-        return <AccountCreationView checkPermission={checkPermission} />;
+        return <AccountCreationView activeRole={activeRole} checkPermission={checkPermission} />;
       case View.REGISTER_BRANCH:
         return <BranchRegistrationView onBack={() => setCurrentView(View.ROLES_PERMISSIONS)} />;
       case View.COURSE_VIEWER:

@@ -38,13 +38,14 @@ import {
 
 interface CenterProfileViewProps {
   activeRole: UserRole;
+  onAddLearner?: () => void;
 }
 
 const EditStudentModal = ({ student, onClose, onSave }: { student: any, onClose: () => void, onSave: (courseId: string) => void }) => {
   const [selectedCourseId, setSelectedCourseId] = useState(student.courseId || MOCK_COURSES[0].id);
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
       <div className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl border-t-[12px] border-[#F05A28] relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col">
         <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl">
           <X size={20} strokeWidth={3} />
@@ -171,7 +172,7 @@ const StudentProfilePopup = ({ student, onClose }: { student: Student | any, onC
   );
 };
 
-export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole }) => {
+export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole, onAddLearner }) => {
   const [selectedStudentForProfile, setSelectedStudentForProfile] = useState<Student | any | null>(null);
   const [editingStudent, setEditingStudent] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -308,6 +309,7 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
         </div>
         {isAdmin && (
            <button 
+             onClick={onAddLearner}
              className="px-6 py-2.5 bg-[#F05A28] text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl hover:bg-[#304B9E] transition-all active:scale-95 border-b-4 border-black/10 flex items-center gap-2"
            >
               <UserPlus size={14} strokeWidth={3} /> Add Learner
