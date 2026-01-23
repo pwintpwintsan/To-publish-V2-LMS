@@ -12,7 +12,7 @@ import {
   Target,
   MonitorPlay,
   Zap,
-  Edit3,
+  Edit3, 
   Layers,
   ChevronRight,
   Eye,
@@ -24,7 +24,11 @@ import {
   Save,
   Type,
   FileText,
-  Settings
+  Settings,
+  Check,
+  Video,
+  // Added missing icon import
+  Play
 } from 'lucide-react';
 
 interface ProgramSyllabusViewProps {
@@ -36,51 +40,155 @@ interface ProgramSyllabusViewProps {
 }
 
 const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => void }) => {
+  const isQuiz = lesson.type === 'quiz';
+  const isVideo = lesson.type === 'video';
+  const isAssignment = lesson.type === 'assignment';
+
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-[#292667]/90 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2rem] w-full max-w-xl max-h-[80vh] shadow-2xl border-t-[6px] border-[#3b82f6] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-             <div className="p-2 bg-blue-50 text-[#3b82f6] rounded-lg">
-               <Eye size={16} strokeWidth={3} />
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] shadow-2xl border-t-[10px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+        {/* Header */}
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
+          <div className="flex items-center gap-4">
+             <div className={`p-3 rounded-xl shadow-md border-b-4 border-black/10 rotate-3 ${
+               isQuiz ? 'bg-[#F05A28] text-white' : 
+               isVideo ? 'bg-[#304B9E] text-white' : 
+               isAssignment ? 'bg-emerald-500 text-white' : 'bg-slate-500 text-white'
+             }`}>
+               {lesson.type === 'video' ? <MonitorPlay size={24} /> : 
+                lesson.type === 'quiz' ? <Zap size={24} fill="currentColor" /> : 
+                lesson.type === 'assignment' ? <Edit3 size={24} /> : <BookOpen size={24} />}
              </div>
              <div>
-               <h2 className="text-sm font-black text-[#292667] uppercase tracking-tighter leading-none">Task Preview</h2>
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Curriculum Resource</p>
+               <span className="text-[8px] font-black text-[#F05A28] uppercase tracking-[0.2em] mb-0.5 block">Payload: {lesson.type}</span>
+               <h2 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">{lesson.title}</h2>
              </div>
           </div>
-          <button onClick={onClose} className="p-1.5 bg-slate-50 text-slate-300 hover:text-[#ec2027] transition-all rounded-lg">
-            <X size={16} strokeWidth={4} />
+          <button onClick={onClose} className="p-2 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-xl shadow-sm border border-slate-100 active:scale-95">
+            <X size={20} strokeWidth={4} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 scrollbar-hide space-y-4">
-           <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-[#292667]">
-                 {lesson.type === 'video' ? <MonitorPlay size={24} /> : 
-                  lesson.type === 'quiz' ? <Zap size={24} fill="currentColor" /> : 
-                  lesson.type === 'assignment' ? <Edit3 size={24} /> : <BookOpen size={24} />}
-              </div>
-              <div>
-                 <span className="text-[8px] font-black text-[#3b82f6] uppercase tracking-widest mb-0.5 block">Type: {lesson.type}</span>
-                 <h3 className="text-lg font-black text-[#292667] uppercase tracking-tight leading-none">{lesson.title}</h3>
-              </div>
-           </div>
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-hide space-y-8">
+           {/* Detailed Quiz View */}
+           {isQuiz && (
+             <div className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <ListOrderedIcon size={14} className="text-[#F05A28]" /> Assessment Blueprint
+                   </h4>
+                   <span className="px-2 py-0.5 bg-orange-50 text-[#F05A28] text-[8px] font-black uppercase rounded border border-orange-100">
+                      {lesson.quiz?.length || 1} Question Set
+                   </span>
+                </div>
+                
+                <div className="space-y-4">
+                  {lesson.quiz && lesson.quiz.length > 0 ? (
+                    lesson.quiz.map((q, qIdx) => (
+                      <div key={q.id} className="bg-slate-50 rounded-3xl p-6 border-2 border-slate-100 shadow-inner">
+                         <div className="flex gap-4">
+                            <span className="w-10 h-10 rounded-xl bg-[#304B9E] text-white flex items-center justify-center font-black text-lg shadow-lg shrink-0">
+                               {qIdx + 1}
+                            </span>
+                            <div className="flex-1 space-y-4">
+                               <h5 className="text-lg font-black text-[#304B9E] uppercase tracking-tight leading-tight pt-1">
+                                  {q.question}
+                               </h5>
+                               <div className="grid grid-cols-1 gap-2">
+                                  {q.options.map((opt, oIdx) => (
+                                    <div key={oIdx} className={`p-3.5 rounded-xl border-2 flex items-center gap-3 transition-all ${
+                                      q.correctAnswer === oIdx 
+                                        ? 'bg-emerald-50 border-emerald-500/30 text-emerald-700 shadow-sm' 
+                                        : 'bg-white border-slate-100 text-slate-400'
+                                    }`}>
+                                       <span className={`w-6 h-6 rounded flex items-center justify-center font-black text-[10px] ${
+                                         q.correctAnswer === oIdx ? 'bg-emerald-500 text-white' : 'bg-slate-100'
+                                       }`}>
+                                         {String.fromCharCode(65 + oIdx)}
+                                       </span>
+                                       <span className="font-bold text-xs uppercase tracking-tight">
+                                          {opt}
+                                       </span>
+                                       {q.correctAnswer === oIdx && <Check size={14} strokeWidth={4} className="ml-auto text-emerald-500" />}
+                                    </div>
+                                  ))}
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-white border-2 border-dashed border-slate-100 p-8 rounded-3xl text-center">
+                       <HelpCircleIcon size={32} className="mx-auto text-slate-200 mb-2" />
+                       <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Question set not configured.</p>
+                    </div>
+                  )}
+                </div>
+             </div>
+           )}
 
-           <div className="space-y-2">
-              <h4 className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                 <Layers size={10} className="text-[#ec2027]" /> Context
-              </h4>
-              <p className="text-xs text-slate-600 font-bold leading-relaxed uppercase tracking-tight">
-                 {lesson.content || lesson.assignmentInstructions || "This curriculum node focuses on core competencies required for foundational mastery."}
-              </p>
-           </div>
+           {/* Detailed Video View */}
+           {isVideo && (
+             <div className="space-y-6">
+                <div className="aspect-video w-full bg-slate-900 rounded-[2rem] shadow-2xl flex items-center justify-center relative group overflow-hidden border-4 border-slate-100">
+                   <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center z-10 shadow-xl group-hover:scale-110 transition-transform border border-white/20">
+                      <Play size={28} className="text-white fill-white ml-1" />
+                   </div>
+                   <img src={`https://picsum.photos/seed/${lesson.id}/1280/720`} className="absolute inset-0 w-full h-full object-cover opacity-50" alt="" />
+                   <div className="absolute top-4 left-4 z-10 flex gap-2">
+                      <span className="px-3 py-1 bg-[#F05A28] text-white rounded-lg font-black text-[8px] uppercase tracking-widest shadow-lg">HD STREAM</span>
+                      <span className="px-3 py-1 bg-[#304B9E] text-white rounded-lg font-black text-[8px] uppercase tracking-widest shadow-lg">4:20 MINS</span>
+                   </div>
+                </div>
+                <div className="bg-white border-2 border-slate-50 p-6 rounded-3xl">
+                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                      <FileText size={14} className="text-[#3b82f6]" /> Abstract
+                   </h4>
+                   <p className="text-xs text-slate-600 font-bold leading-relaxed uppercase tracking-tight">
+                      This curriculum video covers the foundational principles of {lesson.title}. Learners are expected to review the content twice before attempting the associated quiz.
+                   </p>
+                </div>
+             </div>
+           )}
+
+           {/* Detailed Assignment View */}
+           {isAssignment && (
+             <div className="space-y-6">
+                <div className="p-8 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 flex flex-col items-center text-center gap-4 relative overflow-hidden">
+                   <div className="absolute -top-4 -right-4 w-24 h-24 bg-emerald-100/50 rounded-full blur-xl"></div>
+                   <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg rotate-6 mb-2">
+                      <Edit3 size={32} />
+                   </div>
+                   <h4 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter">Workshop Task</h4>
+                   <p className="text-sm font-bold text-emerald-700 max-w-sm uppercase tracking-tight leading-relaxed">
+                      {lesson.assignmentInstructions || "Complete the required practical exercises as specified in your student workbook."}
+                   </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Max Submissions</p>
+                      <p className="text-lg font-black text-[#304B9E]">1 ATTEMPT</p>
+                   </div>
+                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Format Required</p>
+                      <p className="text-lg font-black text-[#304B9E]">PDF / JPG</p>
+                   </div>
+                </div>
+             </div>
+           )}
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50 shrink-0">
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-between">
+           <div className="flex items-center gap-2">
+              <ShieldCheck size={18} className="text-emerald-500" />
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Verified Syllabus Component</span>
+           </div>
            <button 
              onClick={onClose}
-             className="w-full py-3 bg-[#292667] text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-[#3b82f6] hover:text-white transition-all active:scale-95"
+             className="px-8 py-4 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#F05A28] hover:text-white transition-all border-b-4 border-black/10 active:scale-95"
            >
              Close Preview
            </button>
@@ -89,6 +197,18 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
     </div>
   );
 };
+
+const ListOrderedIcon = ({ size, className }: { size: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>
+  </svg>
+);
+
+const HelpCircleIcon = ({ size, className }: { size: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+);
 
 export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ courseId, onBack, onEnroll, onEdit, activeRole }) => {
   const initialCourse = MOCK_COURSES.find(c => c.id === courseId) || MOCK_COURSES[0];
@@ -101,7 +221,6 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
-  const isAdmin = activeRole === UserRole.MAIN_CENTER;
   const canEnroll = activeRole !== UserRole.TEACHER && activeRole !== UserRole.SUPER_ADMIN && activeRole !== UserRole.MAIN_CENTER;
 
   const handleSave = () => {
@@ -123,13 +242,13 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
     <div className="h-full flex flex-col gap-4 overflow-y-auto scrollbar-hide animate-in fade-in duration-500 pb-12">
       {selectedLesson && <TaskDetailModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />}
 
-      {/* 1. HEADER LOGIC: Conditional Banner vs Compact Admin Header */}
+      {/* HEADER LOGIC: Conditional Banner vs Compact Admin Header */}
       {!isMainAdmin ? (
         <div className="w-full relative group shrink-0">
           <div className="absolute top-4 left-4 z-30 flex gap-2">
             <button 
               onClick={onBack} 
-              className="p-2 bg-[#292667]/80 backdrop-blur-md rounded-xl text-white shadow-xl hover:bg-[#ec2027] transition-all active:scale-90 border border-white/20"
+              className="p-2 bg-[#304B9E]/80 backdrop-blur-md rounded-xl text-white shadow-xl hover:bg-[#F05A28] transition-all active:scale-90 border border-white/20"
             >
               <ChevronLeft size={20} strokeWidth={4} />
             </button>
@@ -141,21 +260,21 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
               className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105" 
               alt="Program Banner" 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#292667]/30 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#304B9E]/30 to-transparent"></div>
           </div>
         </div>
       ) : (
-        /* COMPACT HEADER FOR MAIN CENTER ADMIN - Yellow to Red */
+        /* COMPACT HEADER FOR MAIN CENTER ADMIN */
         <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between shrink-0 mb-2">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack} 
-              className="p-2.5 bg-slate-50 text-[#292667] rounded-xl hover:bg-[#ec2027] hover:text-white transition-all active:scale-90 border border-slate-100"
+              className="p-2.5 bg-slate-50 text-[#304B9E] rounded-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100"
             >
               <ChevronLeft size={20} strokeWidth={4} />
             </button>
             <div>
-              <h2 className="text-lg font-black text-[#292667] uppercase tracking-tighter leading-none">Program Syllabus</h2>
+              <h2 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">Program Syllabus</h2>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Management View</p>
             </div>
           </div>
@@ -163,7 +282,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
           <div className="flex gap-2">
              <button 
                   onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg transition-all border-b-4 border-black/10 active:scale-95 ${isEditing ? 'bg-[#00a651] text-white hover:bg-[#292667]' : 'bg-[#ec2027] text-white hover:bg-red-700'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg transition-all border-b-4 border-black/10 active:scale-95 ${isEditing ? 'bg-[#00a651] text-white hover:bg-[#304B9E]' : 'bg-[#F05A28] text-white hover:bg-orange-700'}`}
               >
                   {isEditing ? <><Save size={14} /> Finish</> : <><Edit3 size={14} /> Rename</>}
               </button>
@@ -171,7 +290,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
               {onEdit && (
                 <button 
                   onClick={onEdit}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#292667] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 active:scale-95 hover:bg-blue-600"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#304B9E] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 active:scale-95 hover:bg-blue-600"
                 >
                   <Settings size={14} /> Architect Mode
                 </button>
@@ -180,10 +299,10 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
         </div>
       )}
 
-      {/* 2. TEXTS SECTION - Yellow to Red */}
+      {/* TEXTS SECTION */}
       <div className="max-w-[1000px] mx-auto w-full px-2">
         <div className={`bg-white rounded-[1.5rem] p-5 md:p-6 shadow-md border border-slate-100 relative overflow-hidden z-20 ${!isMainAdmin ? '-mt-10' : 'mt-0'}`}>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
           
           <div className="relative z-10 space-y-3">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -203,7 +322,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                         <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Rename Program</label>
                         <input 
                           type="text" 
-                          className="w-full bg-slate-50 border-2 border-indigo-50 rounded-lg px-3 py-1.5 text-lg font-black text-[#292667] uppercase outline-none focus:border-[#3b82f6] transition-all"
+                          className="w-full bg-slate-50 border-2 border-indigo-50 rounded-lg px-3 py-1.5 text-lg font-black text-[#304B9E] uppercase outline-none focus:border-[#3b82f6] transition-all"
                           value={editedName}
                           onChange={(e) => setEditedName(e.target.value)}
                         />
@@ -220,7 +339,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-xl md:text-2xl font-black text-[#292667] uppercase tracking-tighter leading-none">
+                    <h1 className="text-xl md:text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">
                       {course.name}
                     </h1>
                     <p className="text-xs text-slate-500 font-bold leading-relaxed uppercase tracking-tight max-w-xl">
@@ -233,7 +352,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
               {canEnroll && onEnroll && (
                 <button 
                   onClick={() => onEnroll()}
-                  className="group/enroll px-5 py-2.5 bg-[#ec2027] hover:bg-[#292667] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg transition-all active:scale-95 flex items-center gap-2 border-b-4 border-black/10 shrink-0 self-center md:self-end"
+                  className="group/enroll px-5 py-2.5 bg-[#F05A28] hover:bg-[#304B9E] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg transition-all active:scale-95 flex items-center gap-2 border-b-4 border-black/10 shrink-0 self-center md:self-end"
                 >
                    <Rocket size={14} strokeWidth={3} className="group-hover/enroll:translate-x-1 group-hover/enroll:-translate-y-1 transition-transform" /> 
                    Join
@@ -243,31 +362,31 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
 
             <div className="flex flex-wrap items-center gap-5 pt-3 border-t border-slate-50">
                 <div className="flex items-center gap-1.5">
-                  <Clock size={14} className="text-[#ec2027]" />
-                  <span className="text-[9px] font-black text-[#292667] uppercase">{course.duration}</span>
+                  <Clock size={14} className="text-[#F05A28]" />
+                  <span className="text-[9px] font-black text-[#304B9E] uppercase">{course.duration}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Target size={14} className="text-[#00a651]" />
-                  <span className="text-[9px] font-black text-[#292667] uppercase">{totalTasks} Quests</span>
+                  <span className="text-[9px] font-black text-[#304B9E] uppercase">{totalTasks} Quests</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck size={14} className="text-[#3b82f6]" />
-                  <span className="text-[9px] font-black text-[#292667] uppercase">Global Badge</span>
+                  <span className="text-[9px] font-black text-[#304B9E] uppercase">Global Badge</span>
                 </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 3. ROADMAP SECTION - COMPACTED CARDS */}
+      {/* ROADMAP SECTION */}
       <div className="max-w-[1000px] mx-auto w-full px-2">
         <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-lg flex flex-col overflow-hidden">
           <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-red-50 text-[#ec2027] rounded-lg">
+                <div className="p-1.5 bg-orange-50 text-[#F05A28] rounded-lg">
                     <Target size={16} strokeWidth={3} />
                 </div>
-                <h3 className="text-xs font-black text-[#292667] uppercase tracking-widest">Syllabus Matrix</h3>
+                <h3 className="text-xs font-black text-[#304B9E] uppercase tracking-widest">Syllabus Matrix</h3>
               </div>
               <div className="px-2 py-0.5 bg-white rounded border border-slate-100">
                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{course.modules.length} Modules</span>
@@ -279,11 +398,11 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                 <div key={mod.id} className="relative">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#292667] text-[#ec2027] flex items-center justify-center font-black text-sm shadow border-b-2 border-black/10">
+                        <div className="w-8 h-8 rounded-lg bg-[#304B9E] text-[#F05A28] flex items-center justify-center font-black text-sm shadow border-b-2 border-black/10">
                             {mIdx + 1}
                         </div>
                         <div>
-                          <h4 className="text-lg font-black text-[#292667] uppercase tracking-tighter leading-none">{mod.title}</h4>
+                          <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">{mod.title}</h4>
                           <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{mod.lessons.length} Core Activities</p>
                         </div>
                       </div>
@@ -305,11 +424,11 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                             className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100 hover:border-[#3b82f6]/40 hover:shadow transition-all group cursor-pointer"
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-7 h-7 rounded-lg bg-slate-50 shadow-inner flex items-center justify-center group-hover:scale-105 group-hover:bg-[#292667] group-hover:text-white transition-all text-slate-400">
+                                <div className="w-7 h-7 rounded-lg bg-slate-50 shadow-inner flex items-center justify-center group-hover:scale-105 group-hover:bg-[#304B9E] group-hover:text-white transition-all text-slate-400">
                                   {getTaskIcon(lesson.type)}
                                 </div>
                                 <div>
-                                  <span className="text-xs font-black text-[#292667] uppercase tracking-tight truncate block group-hover:text-[#3b82f6] transition-colors">{lesson.title}</span>
+                                  <span className="text-xs font-black text-[#304B9E] uppercase tracking-tight truncate block group-hover:text-[#3b82f6] transition-colors">{lesson.title}</span>
                                   <span className="text-[6px] font-black text-slate-300 uppercase tracking-widest">{lesson.type}</span>
                                 </div>
                             </div>
@@ -322,22 +441,22 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                                     <Edit3 size={10} />
                                   </button>
                                 )}
-                                <ChevronRight size={14} className="text-slate-200 group-hover:text-[#292667] group-hover:translate-x-1 transition-all" strokeWidth={3} />
+                                <ChevronRight size={14} className="text-slate-200 group-hover:text-[#304B9E] group-hover:translate-x-1 transition-all" strokeWidth={3} />
                             </div>
                           </div>
                       ))}
 
                       {/* Module Assessment Item - Compacted */}
                       <div 
-                        onClick={() => setSelectedLesson({ id: `exam-${mod.id}`, title: `${mod.title} Assessment`, type: 'quiz' })}
-                        className="flex items-center justify-between p-3 rounded-xl bg-red-50/20 border border-dashed border-[#ec2027]/20 hover:border-[#ec2027] hover:bg-white transition-all group cursor-pointer mt-4 relative overflow-hidden"
+                        onClick={() => setSelectedLesson({ id: `exam-${mod.id}`, title: `${mod.title} Assessment`, type: 'quiz', quiz: mod.lessons.find(l => l.type === 'quiz')?.quiz })}
+                        className="flex items-center justify-between p-3 rounded-xl bg-red-50/20 border border-dashed border-[#F05A28]/20 hover:border-[#F05A28] hover:bg-white transition-all group cursor-pointer mt-4 relative overflow-hidden"
                       >
                           <div className="flex items-center gap-3 min-w-0 relative z-10">
-                            <div className="w-8 h-8 rounded-lg bg-white shadow flex items-center justify-center text-[#ec2027] group-hover:rotate-6 transition-all border-b border-black/5">
+                            <div className="w-8 h-8 rounded-lg bg-white shadow flex items-center justify-center text-[#F05A28] group-hover:rotate-6 transition-all border-b border-black/5">
                                 <FileCheck size={16} strokeWidth={3} />
                             </div>
                             <div>
-                                <span className="text-xs font-black text-[#ec2027] uppercase tracking-tighter leading-none block">Performance Check</span>
+                                <span className="text-xs font-black text-[#F05A28] uppercase tracking-tighter leading-none block">Performance Check</span>
                                 <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Automated Assessment</p>
                             </div>
                           </div>
@@ -345,15 +464,15 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                             {isMainAdmin && onEdit && (
                               <button 
                                 onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                                className="p-1.5 opacity-0 group-hover:opacity-100 bg-red-100 text-[#ec2027] rounded-md transition-all hover:bg-[#ec2027] hover:text-white"
+                                className="p-1.5 opacity-0 group-hover:opacity-100 bg-red-100 text-[#F05A28] rounded-md transition-all hover:bg-[#F05A28] hover:text-white"
                               >
                                 <Edit3 size={10} />
                               </button>
                             )}
-                            <div className="hidden sm:block px-1.5 py-0.5 bg-[#ec2027] text-white text-[6px] font-black uppercase rounded shadow-md tracking-widest">
+                            <div className="hidden sm:block px-1.5 py-0.5 bg-[#F05A28] text-white text-[6px] font-black uppercase rounded shadow-md tracking-widest">
                                 FINAL
                             </div>
-                            <ArrowRight size={16} className="text-[#ec2027] group-hover:translate-x-2 transition-transform" strokeWidth={3} />
+                            <ArrowRight size={16} className="text-[#F05A28] group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                           </div>
                       </div>
                     </div>
@@ -363,8 +482,8 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
 
           <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Star size={12} className="text-[#ec2027] fill-current" />
-                <span className="text-[7px] font-black text-[#292667] uppercase tracking-widest">Rewards Enabled</span>
+                <Star size={12} className="text-[#F05A28] fill-current" />
+                <span className="text-[7px] font-black text-[#304B9E] uppercase tracking-widest">Rewards Enabled</span>
               </div>
               <p className="text-[7px] font-black text-slate-300 uppercase tracking-widest">Payload Rev: 3.2.0</p>
           </div>
