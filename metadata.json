@@ -1,0 +1,7 @@
+{
+  "name": "To publish V2 LMS",
+  "description": "A vibrant and modern learning management system ",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
