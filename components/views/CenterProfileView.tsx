@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { MOCK_SCHOOLS, MOCK_COURSES, MOCK_STUDENTS } from '../../constants.tsx';
+import React, { useState, useMemo } from 'react';
+import { MOCK_SCHOOLS, MOCK_COURSES, MOCK_STUDENTS, MOCK_CLASSES } from '../../constants.tsx';
 import { UserRole, Course, Student } from '../../types.ts';
 import { 
   Building2, 
@@ -18,8 +17,18 @@ import {
   Tag,
   Clock,
   User,
+  // Added missing Users icon import
+  Users,
   Plus as PlusIcon,
-  CheckCircle2
+  CheckCircle2,
+  Trophy,
+  History,
+  TrendingUp,
+  Mail,
+  Zap,
+  Calendar,
+  MonitorPlay,
+  ClipboardList
 } from 'lucide-react';
 
 interface CenterProfileViewProps {
@@ -28,13 +37,88 @@ interface CenterProfileViewProps {
 
 const EXTENDED_MOCK_STUDENTS = [
   ...MOCK_STUDENTS,
-  { id: 's3', username: '1000003', firstName: 'Kevin', lastName: 'Aung', status: 'active' },
-  { id: 's4', username: '1000004', firstName: 'Su', lastName: 'Su', status: 'active' },
-  { id: 's5', username: '1000005', firstName: 'Lin', lastName: 'Htut', status: 'active' },
-  { id: 's6', username: '1000006', firstName: 'May', lastName: 'Thiri', status: 'active' },
-  { id: 's7', username: '1000007', firstName: 'Zin', lastName: 'Ko', status: 'active' },
-  { id: 's8', username: '1000008', firstName: 'Alice', lastName: 'Wong', status: 'active' },
+  { id: 's3', username: '1000003', firstName: 'Kevin', lastName: 'Aung', status: 'active', attendance: 28, finalGrade: 85, level: 'Digital Creators' },
+  { id: 's4', username: '1000004', firstName: 'Su', lastName: 'Su', status: 'active', attendance: 30, finalGrade: 92, level: 'Digital Creators' },
+  { id: 's5', username: '1000005', firstName: 'Lin', lastName: 'Htut', status: 'active', attendance: 25, finalGrade: 78, level: 'Robotics Masters' },
+  { id: 's6', username: '1000006', firstName: 'May', lastName: 'Thiri', status: 'active', attendance: 29, finalGrade: 88, level: 'Robotics Masters' },
+  { id: 's7', username: '1000007', firstName: 'Zin', lastName: 'Ko', status: 'active', attendance: 27, finalGrade: 95, level: 'Robotics Masters' },
+  { id: 's8', username: '1000008', firstName: 'Alice', lastName: 'Wong', status: 'active', attendance: 30, finalGrade: 91, level: 'Robotics Masters' },
 ];
+
+const StudentProfilePopup = ({ student, onClose }: { student: Student | any, onClose: () => void }) => {
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] w-full max-w-2xl shadow-2xl border-t-[12px] border-[#F05A28] relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-[85vh]">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl">
+          <X size={20} strokeWidth={3} />
+        </button>
+
+        <div className="p-10 flex flex-col md:flex-row gap-8 overflow-y-auto scrollbar-hide">
+          <div className="shrink-0 flex flex-col items-center">
+            <div className="relative mb-4">
+              <img src={`https://picsum.photos/seed/${student.id}/200`} className="w-40 h-40 rounded-[2.5rem] border-4 border-white shadow-2xl object-cover" alt="" />
+              <div className="absolute -bottom-2 -right-2 bg-[#F05A28] text-white p-2.5 rounded-2xl shadow-xl rotate-12 border-4 border-white">
+                <Trophy size={20} strokeWidth={3} />
+              </div>
+            </div>
+            <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter text-center">{student.firstName} {student.lastName}</h3>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {student.username}</p>
+            <div className="mt-6 w-full flex items-center justify-center gap-3">
+              <div className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-emerald-100">Active</div>
+              <div className="px-4 py-2 bg-indigo-50 text-[#304B9E] rounded-xl font-black text-[9px] uppercase tracking-widest border border-indigo-100">Level 3</div>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-8">
+            <div className="grid grid-cols-2 gap-4">
+               <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 text-center">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Final Grade</p>
+                  <p className="text-3xl font-black text-[#F05A28]">{student.finalGrade || 85}%</p>
+               </div>
+               <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 text-center">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Attendance</p>
+                  <p className="text-3xl font-black text-[#304B9E]">{student.attendance || 24}</p>
+               </div>
+            </div>
+
+            <div className="space-y-4">
+               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] flex items-center gap-2">
+                 <History size={14} /> Submission Log
+               </h4>
+               <div className="space-y-2">
+                  {[
+                    { title: 'Binary Logic Quiz', type: 'quiz', score: '95%', date: 'Yesterday' },
+                    { title: 'Hardware Architecture', type: 'assignment', score: 'A-', date: '3 days ago' },
+                    { title: 'Introduction Video', type: 'video', score: 'Completed', date: '1 week ago' }
+                  ].map((sub, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm group hover:border-[#304B9E] transition-all">
+                       <div className="flex items-center gap-3">
+                          <div className={`p-1.5 rounded-lg text-white ${sub.type === 'quiz' ? 'bg-[#F05A28]' : sub.type === 'assignment' ? 'bg-[#304B9E]' : 'bg-emerald-500'}`}>
+                             {sub.type === 'quiz' ? <Zap size={12} fill="currentColor" /> : sub.type === 'assignment' ? <ClipboardList size={12} /> : <MonitorPlay size={12} />}
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-[#304B9E] uppercase leading-none">{sub.title}</p>
+                            <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest mt-1">{sub.date}</p>
+                          </div>
+                       </div>
+                       <span className="text-[10px] font-black text-[#F05A28]">{sub.score}</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <button 
+              onClick={onClose}
+              className="w-full py-4 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#F05A28] transition-all border-b-4 border-black/10 active:scale-95"
+            >
+              Close Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AddStudentsModal = ({ courseName, onClose }: { courseName: string; onClose: () => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,7 +144,7 @@ const AddStudentsModal = ({ courseName, onClose }: { courseName: string; onClose
         </button>
 
         <div className="text-center mb-8 shrink-0">
-           <div className="w-16 h-16 bg-orange-50 text-[#F05A28] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-orange-100 rotate-3">
+           <div className="w-16 h-16 bg-orange-50 text-[#304B9E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-orange-100 rotate-3">
               <UserPlus size={32} strokeWidth={3} />
            </div>
            <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Enroll Learner</h3>
@@ -127,7 +211,7 @@ const AddStudentsModal = ({ courseName, onClose }: { courseName: string; onClose
                selectedStudentId ? 'bg-[#00a651] hover:bg-[#304B9E]' : 'bg-slate-200 cursor-not-allowed'
              }`}
            >
-              <CheckCircle2 size={18} strokeWidth={3} /> add to class
+              <CheckCircle2 size={18} strokeWidth={3} /> add class
            </button>
         </div>
       </div>
@@ -201,26 +285,32 @@ const NewClassModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-const CourseSectionTable = ({ 
-  title, 
-  courses, 
-  onAddStudents,
-  activeRole
-}: { 
-  title: string, 
-  courses: any[], 
-  onAddStudents: (course: any) => void,
-  activeRole: UserRole
-}) => {
+export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [addStudentsTarget, setAddStudentsTarget] = useState<{ id: string, name: string } | null>(null);
+  const [selectedStudentForProfile, setSelectedStudentForProfile] = useState<Student | any | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const isAdmin = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN;
   const isTeacher = activeRole === UserRole.TEACHER;
 
-  const tableData = courses.flatMap((course, cIdx) => {
+  const unifiedCourses = [
+    { id: 'st1', displayId: 'ST1001', name: 'Digital Creators Level 1', category: 'Starter', className: 'Junior Coders A' },
+    { id: 'st2', displayId: 'ST1002', name: 'Digital Creators Level 2', category: 'Starter', className: 'Junior Coders B' },
+    { id: 'st3', displayId: 'ST1003', name: 'Digital Creators Level 3', category: 'Starter', className: 'Advanced Coders' },
+    { id: 'mv1', displayId: 'MI1001', name: 'Robotics Masters Level 1', category: 'Mover', className: 'Robot Workshop' },
+    { id: 'mv2', displayId: 'MI1002', name: 'Robotics Masters Level 2', category: 'Mover', className: 'Circuit Masters' },
+    { id: 'mv3', displayId: 'MI1003', name: 'Robotics Masters Level 3', category: 'Mover', className: 'AI Pioneers' },
+  ].filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.displayId.includes(searchTerm.toUpperCase()));
+
+  const tableData = unifiedCourses.flatMap((course, cIdx) => {
     const studentCount = cIdx % 4 === 2 ? 0 : (cIdx % 3) + 1;
     const studentsInThisCourse = EXTENDED_MOCK_STUDENTS.slice(cIdx * 2, cIdx * 2 + studentCount);
     
     if (studentsInThisCourse.length > 0) {
       return studentsInThisCourse.map(student => ({
         ...course,
+        studentObj: student,
         studentName: `${student.firstName} ${student.lastName}`,
         studentId: student.username,
         studentUniqueId: `${course.id}-${student.id}`
@@ -228,116 +318,13 @@ const CourseSectionTable = ({
     } else {
       return [{
         ...course,
+        studentObj: null,
         studentName: null,
         studentId: null,
         studentUniqueId: `${course.id}-empty`
       }];
     }
   });
-
-  return (
-    <div className="space-y-4">
-      <div className="px-4 shrink-0">
-         <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 text-[#3b82f6] rounded-xl">
-               <BookMarked size={20} strokeWidth={3} />
-            </div>
-            <h3 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter">
-              Course Name <span className="text-slate-300 mx-2">•</span> <span className="text-[#3b82f6]">{title}</span>
-            </h3>
-         </div>
-      </div>
-
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col">
-        <div className="overflow-x-auto scrollbar-hide">
-          <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 bg-[#304B9E] text-white uppercase text-[10px] font-black tracking-widest z-20">
-              <tr>
-                <th className="px-8 py-6">Course/Book ID</th>
-                <th className="px-8 py-6">Category</th>
-                <th className="px-8 py-6 text-right">Learner Roster</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {tableData.length > 0 ? tableData.map((item) => (
-                <tr key={item.studentUniqueId} className="group hover:bg-slate-50/50 transition-all">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-3">
-                       <div className="w-2.5 h-2.5 rounded-full bg-[#F05A28] shadow-[0_0_8px_rgba(240,90,40,0.6)]"></div>
-                       <span className="font-mono text-sm font-black text-[#F05A28] tracking-widest uppercase">{item.displayId}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="px-3 py-1 bg-indigo-50 text-[#3b82f6] rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100">
-                       {item.category || "Standard"}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    {item.studentName ? (
-                      <div className="flex items-center justify-end gap-3 animate-in fade-in slide-in-from-right-2 duration-300">
-                        <div className="text-right">
-                           <p className="font-black text-sm text-[#304B9E] uppercase tracking-tight leading-none">{item.studentName}</p>
-                           <p className="text-[9px] font-bold text-slate-400 font-mono mt-1 tracking-widest">ID: {item.studentId}</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-[#304B9E] border border-slate-100 shadow-sm group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                           <User size={18} strokeWidth={3} />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-end gap-3">
-                        <button 
-                          onClick={() => !isTeacher && onAddStudents(item)}
-                          disabled={isTeacher}
-                          className={`p-3 rounded-xl shadow-md border-b-4 border-black/10 transition-all active:scale-90 group/plus ${isTeacher ? 'bg-slate-50 text-slate-200 cursor-not-allowed' : 'bg-[#F05A28] text-white hover:bg-[#304B9E]'}`}
-                          title={isTeacher ? "Empty Slot" : "Add Student Lists"}
-                        >
-                           <PlusIcon size={20} strokeWidth={4} className={!isTeacher ? "transition-transform group-hover/plus:scale-110" : ""} />
-                        </button>
-                        {!isTeacher && <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest italic">Slot Available</span>}
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                   <td colSpan={3} className="py-20 text-center opacity-20">
-                      <BookOpen size={60} className="mx-auto text-slate-300 mb-4" />
-                      <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">No Records Found</h4>
-                   </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [addStudentsTarget, setAddStudentsTarget] = useState<{ id: string, name: string } | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const isAdmin = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN;
-
-  const starterCourses = [
-    { id: 'st1', displayId: 'ST10001', name: 'Digital Creators Level 1', category: 'Starter' },
-    { id: 'st2', displayId: 'ST10002', name: 'Digital Creators Level 2', category: 'Starter' },
-    { id: 'st3', displayId: 'ST10003', name: 'Digital Creators Level 3', category: 'Starter' },
-    { id: 'st4', displayId: 'ST10004', name: 'Digital Creators Level 4', category: 'Starter' },
-    { id: 'st5', displayId: 'ST10005', name: 'Digital Creators Level 5', category: 'Starter' },
-    { id: 'st6', displayId: 'ST10006', name: 'Digital Creators Level 6', category: 'Starter' },
-  ].filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.displayId.includes(searchTerm.toUpperCase()));
-
-  const moverCourses = [
-    { id: 'mv1', displayId: 'MI10001', name: 'Robotics Masters Level 1', category: 'Mover' },
-    { id: 'mv2', displayId: 'MI10002', name: 'Robotics Masters Level 2', category: 'Mover' },
-    { id: 'mv3', displayId: 'MI10003', name: 'Robotics Masters Level 3', category: 'Mover' },
-    { id: 'mv4', displayId: 'MI10004', name: 'Robotics Masters Level 4', category: 'Mover' },
-    { id: 'mv5', displayId: 'MI10005', name: 'Robotics Masters Level 5', category: 'Mover' },
-    { id: 'mv6', displayId: 'MI10006', name: 'Robotics Masters Level 6', category: 'Mover' },
-  ].filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.displayId.includes(searchTerm.toUpperCase()));
 
   return (
     <div className="h-full flex flex-col gap-3 overflow-hidden animate-in fade-in duration-500">
@@ -350,7 +337,14 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
         />
       )}
 
-      {/* Compact Standardized Header - Updated Banner Text size and Strictly Hub ID Number title */}
+      {selectedStudentForProfile && (
+        <StudentProfilePopup 
+          student={selectedStudentForProfile} 
+          onClose={() => setSelectedStudentForProfile(null)} 
+        />
+      )}
+
+      {/* Compact Standardized Header - STRICTLY 4 DIGIT ID */}
       <div className="w-full bg-[#304B9E] rounded-xl p-3 md:p-4 text-white shadow-xl border-b-6 border-[#F05A28] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="flex items-center gap-3 relative z-10">
@@ -358,15 +352,14 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
              <Building2 size={20} strokeWidth={3} />
            </div>
            <div>
-             <h2 className="text-sm md:text-base font-black leading-none tracking-tight uppercase">Hub <span className="text-[#F05A28]">ID Number: 123232</span></h2>
+             <h2 className="text-sm md:text-base font-black leading-none tracking-tight uppercase">School <span className="text-[#F05A28]">ID Number: 7244</span></h2>
            </div>
         </div>
         
-        {/* Compact Info Badges */}
         <div className="flex items-center gap-4 relative z-10">
             <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 backdrop-blur-sm">
                 <Tag size={10} className="text-[#F05A28]" strokeWidth={3} />
-                <span className="text-[8px] font-black text-white font-mono tracking-widest leading-none">ID: 73434</span>
+                <span className="text-[8px] font-black text-white font-mono tracking-widest leading-none">NODE: 0921</span>
             </div>
             <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 backdrop-blur-sm">
                 <Clock size={10} className="text-[#00a651]" strokeWidth={3} />
@@ -375,13 +368,13 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
         </div>
       </div>
 
-      {/* Control Bar - Standardized */}
+      {/* Control Bar */}
       <div className="w-full bg-white p-2.5 rounded-2xl shadow-lg border border-slate-100 flex flex-col md:flex-row items-center gap-2.5 flex-shrink-0">
         <div className="flex-1 flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 w-full group focus-within:border-[#F05A28] transition-all">
           <Search size={18} className="text-slate-400 group-focus-within:text-[#304B9E]" strokeWidth={3} />
           <input 
             type="text" 
-            placeholder="Search by ID (e.g. ST100...) or Course Name..." 
+            placeholder="Search by ID (e.g. ST1...) or Course Name..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent text-xs font-black text-[#304B9E] outline-none w-full placeholder:text-slate-200 uppercase"
@@ -397,25 +390,97 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
         )}
       </div>
 
-      {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-8 pb-8">
-        <CourseSectionTable 
-          title="Starter Course" 
-          courses={starterCourses} 
-          onAddStudents={(course) => setAddStudentsTarget({ id: course.id, name: course.name })} 
-          activeRole={activeRole}
-        />
+      {/* Unified Student Table */}
+      <div className="flex-1 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col mb-4">
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 shrink-0">
+           <h3 className="text-sm font-black text-[#304B9E] uppercase tracking-tighter flex items-center gap-2">
+              <Users size={18} strokeWidth={3} className="text-[#F05A28]" /> Master Learner Roster
+           </h3>
+        </div>
 
-        <CourseSectionTable 
-          title="Mover Course" 
-          courses={moverCourses} 
-          onAddStudents={(course) => setAddStudentsTarget({ id: course.id, name: course.name })} 
-          activeRole={activeRole}
-        />
+        <div className="flex-1 overflow-x-auto scrollbar-hide">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead className="sticky top-0 bg-[#304B9E] text-white uppercase text-[10px] font-black tracking-widest z-20">
+              <tr>
+                <th className="px-8 py-5">Student Account</th>
+                <th className="px-8 py-5">ID Code</th>
+                <th className="px-8 py-5">Course Name</th>
+                <th className="px-8 py-5">Class Name</th>
+                <th className="px-8 py-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {tableData.length > 0 ? tableData.map((item) => (
+                <tr key={item.studentUniqueId} className="group hover:bg-slate-50/50 transition-all">
+                  <td className="px-8 py-5">
+                    {item.studentName ? (
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+                           <img src={`https://picsum.photos/seed/${item.studentObj?.id}/64`} className="w-full h-full object-cover" alt="" />
+                        </div>
+                        <p className="font-black text-sm text-[#304B9E] uppercase tracking-tight leading-none">{item.studentName}</p>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4 opacity-30">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-dashed border-slate-200 flex items-center justify-center">
+                           <User size={18} className="text-slate-400" />
+                        </div>
+                        <p className="font-bold text-sm text-slate-400 uppercase tracking-widest italic">Open Slot</p>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-8 py-5">
+                    <span className="font-mono text-sm font-black text-[#F05A28] tracking-widest uppercase">
+                       {item.studentId || item.displayId}
+                    </span>
+                  </td>
+                  <td className="px-8 py-5">
+                    <span className="px-3 py-1 bg-indigo-50 text-[#3b82f6] rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100">
+                       {item.name}
+                    </span>
+                  </td>
+                  <td className="px-8 py-5">
+                    <span className="text-[10px] font-black text-[#304B9E] uppercase tracking-widest">
+                       {item.className}
+                    </span>
+                  </td>
+                  <td className="px-8 py-5 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      {item.studentName ? (
+                        <button 
+                          onClick={() => setSelectedStudentForProfile(item.studentObj)}
+                          className="p-3 bg-slate-50 text-slate-400 rounded-xl shadow-sm hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
+                          title="View Profile"
+                        >
+                           <User size={18} strokeWidth={3} />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => !isTeacher && setAddStudentsTarget({ id: item.id, name: item.name })}
+                          disabled={isTeacher}
+                          className={`p-3 rounded-xl shadow-md border-b-4 border-black/10 transition-all active:scale-90 group/plus ${isTeacher ? 'bg-slate-50 text-slate-200 cursor-not-allowed' : 'bg-[#F05A28] text-white hover:bg-[#304B9E]'}`}
+                        >
+                           <PlusIcon size={20} strokeWidth={4} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                   <td colSpan={5} className="py-20 text-center opacity-20">
+                      <BookOpen size={60} className="mx-auto text-slate-300 mb-4" />
+                      <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">No Records Found</h4>
+                   </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0 rounded-b-2xl">
-         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Global Catalog Sync: {starterCourses.length + moverCourses.length} ACTIVE</p>
+         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">School Sync Status: LIVE</p>
          <div className="flex items-center gap-2">
             <button className="p-1.5 bg-white rounded-lg shadow-sm border border-slate-200 text-slate-300 hover:text-[#304B9E] transition-all"><MoreHorizontal size={14} /></button>
          </div>

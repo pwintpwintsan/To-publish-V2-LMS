@@ -48,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
   const adminItems = [
     activeRole === UserRole.SUPER_ADMIN 
       ? { id: View.CENTER_PROFILE, label: 'Center Profile', icon: Settings2, category: 'accounts' }
-      : { id: View.CENTER_LIST, label: 'Hub Directory', icon: Building2, category: 'accounts' },
+      : { id: View.CENTER_LIST, label: 'School Directory', icon: Building2, category: 'accounts' },
     
     // School Admin keeps 'Classes' view, Main Center Admin doesn't
     ...(activeRole === UserRole.SUPER_ADMIN 
