@@ -15,7 +15,6 @@ import {
   Edit3, 
   Layers,
   ChevronRight,
-  Eye,
   X,
   FileCheck,
   Star,
@@ -27,7 +26,6 @@ import {
   Settings,
   Check,
   Video,
-  // Added missing icon import
   Play
 } from 'lucide-react';
 
@@ -45,8 +43,14 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
   const isAssignment = lesson.type === 'assignment';
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] shadow-2xl border-t-[10px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+    <div 
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] shadow-2xl border-t-[10px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
           <div className="flex items-center gap-4">
@@ -64,8 +68,12 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
                <h2 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">{lesson.title}</h2>
              </div>
           </div>
-          <button onClick={onClose} className="p-2 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-xl shadow-sm border border-slate-100 active:scale-95">
-            <X size={20} strokeWidth={4} />
+          <button 
+            onClick={onClose} 
+            className="shrink-0 p-2.5 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-xl shadow-sm border border-slate-100 active:scale-95 group z-50"
+            aria-label="Close modal"
+          >
+            <X size={20} strokeWidth={4} className="group-hover:rotate-90 transition-transform" />
           </button>
         </div>
 
