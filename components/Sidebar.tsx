@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
 
     { 
       id: activeRole === UserRole.MAIN_CENTER ? View.COURSES_ADMIN : View.MY_CLASSES, 
-      label: 'Programs', 
+      label: 'Course Lists', 
       icon: Library, 
       category: 'accounts' 
     },
@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
 
   const teacherItems = [
     { id: View.CENTER_PROFILE, label: 'Hub Profile', icon: Settings2, category: 'accounts' },
-    { id: View.MY_CLASSES, label: 'Programs', icon: BookOpen, category: 'accounts' },
+    { id: View.MY_CLASSES, label: 'Course Lists', icon: BookOpen, category: 'accounts' },
     { id: View.CLASSES, label: 'Classes', icon: LayoutGrid, category: 'accounts' },
     { id: View.STUDENTS, label: 'Roster', icon: Users, category: 'accounts' },
     { id: View.REPORTS, label: 'Reports', icon: BarChart3, category: 'reports' },

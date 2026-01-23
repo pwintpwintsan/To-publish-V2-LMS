@@ -42,7 +42,6 @@ interface CoursesAdminViewProps {
 
 const NewCourseModal = ({ onClose, onSave }: { onClose: () => void, onSave: (course: Course) => void }) => {
   const [courseName, setCourseName] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('Standard Template');
 
   const handleCreate = () => {
     if (!courseName.trim()) return;
@@ -54,7 +53,7 @@ const NewCourseModal = ({ onClose, onSave }: { onClose: () => void, onSave: (cou
       thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop',
       description: `New course module for U Book Store learners.`,
       category: 'Digital Literacy',
-      level: 'Foundation',
+      level: '🔰 Beginner',
       duration: "15 Hours",
       lastUpdated: new Date().toISOString(),
       modules: [
@@ -81,14 +80,14 @@ const NewCourseModal = ({ onClose, onSave }: { onClose: () => void, onSave: (cou
            <div className="w-16 h-16 bg-red-50 text-[#304B9E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-red-100 rotate-3">
               <PlusCircle size={32} strokeWidth={3} />
            </div>
-           <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">New Program</h3>
+           <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">New Course</h3>
            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Curriculum Architect</p>
         </div>
 
         <div className="space-y-6">
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-              <Type size={12} className="text-[#3b82f6]" /> Program Title
+              <Type size={12} className="text-[#3b82f6]" /> Course Title
             </label>
             <input 
               required
@@ -164,7 +163,7 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
                   <ChevronLeft size={24} strokeWidth={4} />
                 </button>
                 <div>
-                  <h2 className="text-xl font-black uppercase tracking-tight leading-none">Edit <span className="text-[#F05A28]">Program</span></h2>
+                  <h2 className="text-xl font-black uppercase tracking-tight leading-none">Edit <span className="text-[#F05A28]">Course</span></h2>
                   <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1 truncate max-w-[250px]">{currentCourse.name}</p>
                 </div>
              </div>
@@ -181,8 +180,7 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
 
           <div className="flex-1 overflow-y-auto scrollbar-hide p-2">
              <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
-                {/* Simplified Editor */}
-                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter mb-4">Program Content</h4>
+                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter mb-4">Course Content</h4>
                 <div className="space-y-4">
                   {currentCourse.modules.map((mod, idx) => (
                     <div key={mod.id} className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 flex items-center justify-between">
@@ -210,7 +208,7 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
              <Settings2 size={22} strokeWidth={3} />
            </div>
            <div>
-             <h2 className="text-lg md:text-xl font-black leading-none tracking-tight uppercase">Program <span className="text-[#F05A28]">Architect</span></h2>
+             <h2 className="text-lg md:text-xl font-black leading-none tracking-tight uppercase">Course <span className="text-[#F05A28]">Architect</span></h2>
              <p className="text-[8px] font-black uppercase tracking-widest text-white/40 mt-1">U Book Store Catalog Control</p>
            </div>
         </div>
@@ -219,7 +217,7 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
           className="flex items-center gap-2 px-5 py-2.5 bg-[#F05A28] text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all border-b-4 border-black/10 relative z-10"
         >
           <PlusCircle size={14} strokeWidth={3} />
-          <span>New Program</span>
+          <span>New Course</span>
         </button>
       </div>
 
@@ -228,7 +226,7 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#304B9E] transition-colors" />
           <input 
             type="text" 
-            placeholder="Search programs by title..." 
+            placeholder="Search course lists by title..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 pl-10 pr-4 py-2.5 rounded-xl border border-slate-100 outline-none font-black text-[10px] text-[#304B9E] uppercase placeholder:text-slate-200 focus:border-[#304B9E] transition-all shadow-inner"
@@ -236,17 +234,19 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
         </div>
       </div>
 
-      {/* Unified List - No Starter/Mover dividers */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredCourses.map((course) => (
             <div key={course.id} className="group bg-white rounded-[2rem] p-6 shadow-md border-4 border-slate-50 hover:border-[#F05A28]/20 transition-all hover:shadow-xl flex flex-col gap-4 relative overflow-hidden">
                 <div className="aspect-video w-full rounded-2xl overflow-hidden mb-2 relative">
                    <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="" />
+                   <div className="absolute top-2 right-2">
+                     <span className="px-2 py-1 bg-white/90 backdrop-blur text-[8px] font-black uppercase text-[#304B9E] rounded shadow-sm">{course.level.split(' ')[0]}</span>
+                   </div>
                 </div>
                 
                 <div className="min-w-0">
-                  <h4 className="text-base font-black text-[#304B9E] uppercase tracking-tight leading-tight group-hover:text-[#ec2027] transition-colors line-clamp-1">{course.name}</h4>
+                  <h4 className="text-base font-black text-[#304B9E] uppercase tracking-tight leading-tight group-hover:text-[#ec2027] transition-colors line-clamp-2">{course.name}</h4>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center gap-1.5">
                     <Layers size={10} className="text-[#3b82f6]" /> {course.modules.length} Modules
                   </p>

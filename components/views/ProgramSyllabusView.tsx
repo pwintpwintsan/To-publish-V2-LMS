@@ -64,7 +64,7 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
                 lesson.type === 'assignment' ? <Edit3 size={24} /> : <BookOpen size={24} />}
              </div>
              <div>
-               <span className="text-[8px] font-black text-[#F05A28] uppercase tracking-[0.2em] mb-0.5 block">Payload: {lesson.type}</span>
+               <span className="text-[8px] font-black text-[#F05A28] uppercase tracking-[0.2em] mb-0.5 block">Course Payload: {lesson.type}</span>
                <h2 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">{lesson.title}</h2>
              </div>
           </div>
@@ -84,7 +84,7 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
              <div className="space-y-6">
                 <div className="flex items-center justify-between px-2">
                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <ListOrderedIcon size={14} className="text-[#F05A28]" /> Assessment Blueprint
+                      <ListOrderedIcon size={14} className="text-[#F05A28]" /> Course Assessment
                    </h4>
                    <span className="px-2 py-0.5 bg-orange-50 text-[#F05A28] text-[8px] font-black uppercase rounded border border-orange-100">
                       {lesson.quiz?.length || 1} Question Set
@@ -154,7 +154,7 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
                       <FileText size={14} className="text-[#3b82f6]" /> Abstract
                    </h4>
                    <p className="text-xs text-slate-600 font-bold leading-relaxed uppercase tracking-tight">
-                      This curriculum video covers the foundational principles of {lesson.title}. Learners are expected to review the content twice before attempting the associated quiz.
+                      This course video covers the foundational principles of {lesson.title}. Learners are expected to review the content twice before attempting the associated quiz.
                    </p>
                 </div>
              </div>
@@ -168,7 +168,7 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
                    <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg rotate-6 mb-2">
                       <Edit3 size={32} />
                    </div>
-                   <h4 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter">Workshop Task</h4>
+                   <h4 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter">Course Workshop</h4>
                    <p className="text-sm font-bold text-emerald-700 max-w-sm uppercase tracking-tight leading-relaxed">
                       {lesson.assignmentInstructions || "Complete the required practical exercises as specified in your student workbook."}
                    </p>
@@ -192,7 +192,7 @@ const TaskDetailModal = ({ lesson, onClose }: { lesson: Lesson, onClose: () => v
         <div className="p-6 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-between">
            <div className="flex items-center gap-2">
               <ShieldCheck size={18} className="text-emerald-500" />
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Verified Syllabus Component</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Verified Course Component</span>
            </div>
            <button 
              onClick={onClose}
@@ -266,7 +266,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
             <img 
               src={course.thumbnail} 
               className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105" 
-              alt="Program Banner" 
+              alt="Course Banner" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#304B9E]/30 to-transparent"></div>
           </div>
@@ -282,7 +282,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
               <ChevronLeft size={20} strokeWidth={4} />
             </button>
             <div>
-              <h2 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">Program Syllabus</h2>
+              <h2 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">Course Syllabus</h2>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Management View</p>
             </div>
           </div>
@@ -300,7 +300,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                   onClick={onEdit}
                   className="flex items-center gap-2 px-4 py-2 bg-[#304B9E] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 active:scale-95 hover:bg-blue-600"
                 >
-                  <Settings size={14} /> Architect Mode
+                  <Settings size={14} /> Course Architect
                 </button>
               )}
           </div>
@@ -327,7 +327,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                 {isEditing ? (
                   <div className="space-y-2 animate-in slide-in-from-top-1">
                      <div className="space-y-1">
-                        <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Rename Program</label>
+                        <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Rename Course</label>
                         <input 
                           type="text" 
                           className="w-full bg-slate-50 border-2 border-indigo-50 rounded-lg px-3 py-1.5 text-lg font-black text-[#304B9E] uppercase outline-none focus:border-[#3b82f6] transition-all"
@@ -347,11 +347,11 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-xl md:text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">
+                    <h1 className="text-xl md:text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none text-balance">
                       {course.name}
                     </h1>
                     <p className="text-xs text-slate-500 font-bold leading-relaxed uppercase tracking-tight max-w-xl">
-                      {course.description || "Official U Book Store curriculum module designed for the next generation of digital pioneers."}
+                      {course.description || "Official U Book Store course module designed for the next generation of digital pioneers."}
                     </p>
                   </>
                 )}
@@ -394,7 +394,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                 <div className="p-1.5 bg-orange-50 text-[#F05A28] rounded-lg">
                     <Target size={16} strokeWidth={3} />
                 </div>
-                <h3 className="text-xs font-black text-[#304B9E] uppercase tracking-widest">Syllabus Matrix</h3>
+                <h3 className="text-xs font-black text-[#304B9E] uppercase tracking-widest">Course Roadmap</h3>
               </div>
               <div className="px-2 py-0.5 bg-white rounded border border-slate-100">
                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{course.modules.length} Modules</span>
@@ -493,7 +493,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                 <Star size={12} className="text-[#F05A28] fill-current" />
                 <span className="text-[7px] font-black text-[#304B9E] uppercase tracking-widest">Rewards Enabled</span>
               </div>
-              <p className="text-[7px] font-black text-slate-300 uppercase tracking-widest">Payload Rev: 3.2.0</p>
+              <p className="text-[7px] font-black text-slate-300 uppercase tracking-widest">Course Rev: 4.0.1</p>
           </div>
         </div>
       </div>

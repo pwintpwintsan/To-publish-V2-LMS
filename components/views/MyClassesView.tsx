@@ -96,7 +96,7 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
            </div>
            <div>
              <h2 className="text-xl md:text-2xl font-black leading-none tracking-tight uppercase">
-               Course <span className="text-[#F05A28]">{isAdmin ? 'Library' : 'Portal'}</span>
+               Course <span className="text-[#F05A28]">{isAdmin ? 'Lists' : 'Portal'}</span>
              </h2>
              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">U Book Store Global Catalog</p>
            </div>
@@ -105,7 +105,7 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
         <div className="flex items-center gap-6 relative z-10 bg-white/5 px-5 py-3 rounded-2xl border border-white/10 backdrop-blur-sm">
              <div className="text-center">
                 <p className="text-2xl font-black text-[#F05A28] leading-none mb-0.5">{filteredCourses.length}</p>
-                <p className="text-[8px] font-black uppercase text-white/40 tracking-widest">Active Courses</p>
+                <p className="text-[8px] font-black uppercase text-white/40 tracking-widest">Available Courses</p>
              </div>
              <div className="w-px h-8 bg-white/10"></div>
              <div className="text-center">
@@ -125,7 +125,7 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
           <Search size={18} className="text-slate-400 group-focus-within:text-[#ec2027]" strokeWidth={3} />
           <input 
             type="text" 
-            placeholder="Search course library..."
+            placeholder="Search course lists..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
             className="bg-transparent text-sm font-black text-[#304B9E] outline-none w-full placeholder:text-slate-200 uppercase"

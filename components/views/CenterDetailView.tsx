@@ -74,7 +74,7 @@ const EditStudentModal = ({ student, onClose, onSave }: { student: any, onClose:
         
         <div className="space-y-6 flex-1">
            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Program</label>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Course</label>
               <div className="relative">
                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                  <select 
@@ -93,7 +93,7 @@ const EditStudentModal = ({ student, onClose, onSave }: { student: any, onClose:
            <div className="p-5 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
               <Zap size={18} className="text-[#F05A28] shrink-0 mt-1" fill="currentColor" />
               <p className="text-[10px] font-bold text-slate-600 uppercase leading-relaxed">
-                 Changing the program will reset the learner's progress metrics for the current term within this specific class node.
+                 Changing the course will reset the learner's progress metrics for the current term within this specific class node.
               </p>
            </div>
         </div>
