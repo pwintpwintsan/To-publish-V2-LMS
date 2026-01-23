@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { MOCK_COURSES } from '../../constants.tsx';
-import { Award, Palette, Layout, Save, Star, Sparkles, RefreshCw, BookOpen, User, Hash, Calendar, Type, CheckCircle2 } from 'lucide-react';
+import { Award, Palette, Layout, Save, Star, Sparkles, RefreshCw, BookOpen, User, Hash, Calendar, Type, CheckCircle2, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { LogoMark } from '../Header.tsx';
 
 const BrandLogo = () => (
@@ -31,6 +31,8 @@ export const EditCertificatesView: React.FC = () => {
   const [selectedCourseId, setSelectedCourseId] = useState(MOCK_COURSES[0].id);
   const [config, setConfig] = useState(initialConfig);
   const [isSaving, setIsSaving] = useState(false);
+  const [courseBackgrounds, setCourseBackgrounds] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCourseChange = (id: string) => {
     const course = MOCK_COURSES.find(c => c.id === id);
@@ -40,20 +42,53 @@ export const EditCertificatesView: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 2000);
-  };
-
-  const handleReset = () => {
-    if (confirm("Reset template to defaults?")) {
-      setConfig(initialConfig);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'image/png') {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setCourseBackgrounds(prev => ({
+          ...prev,
+          [selectedCourseId]: base64String
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else if (file) {
+      alert("Please upload a valid PNG file.");
     }
   };
 
+  const removeBackground = () => {
+    setCourseBackgrounds(prev => {
+      const next = { ...prev };
+      delete next[selectedCourseId];
+      return next;
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSave = () => {
+    setIsSaving(true);
+    // Simulate save to backend/registry
+    setTimeout(() => {
+      setIsSaving(false);
+      alert('Award branding and background saved for ' + config.courseName);
+    }, 2000);
+  };
+
+  const handleReset = () => {
+    if (confirm("Reset template and remove custom background for this program?")) {
+      setConfig(initialConfig);
+      removeBackground();
+    }
+  };
+
+  const currentBackground = courseBackgrounds[selectedCourseId];
+
   return (
     <div className="h-full flex flex-col gap-3 overflow-hidden animate-in fade-in duration-500">
-      {/* Compact Header - Purple changed to Blue */}
+      {/* Compact Header */}
       <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#3b82f6] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="flex items-center gap-3 relative z-10">
@@ -69,7 +104,7 @@ export const EditCertificatesView: React.FC = () => {
            onClick={handleReset}
            className="px-6 py-2 bg-white/10 text-white border border-white/20 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-[#ec2027] hover:border-transparent transition-all z-10 active:scale-95"
         >
-          Reset to Default
+          Reset Program Style
         </button>
       </div>
 
@@ -82,7 +117,7 @@ export const EditCertificatesView: React.FC = () => {
            
            <div className="space-y-4 flex-1 pr-1">
               <div className="space-y-1">
-                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><BookOpen size={12} /> Link to Program</label>
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><BookOpen size={12} /> Target Program</label>
                  <select 
                     className="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-black text-[10px] uppercase outline-none focus:border-[#3b82f6] transition-all appearance-none cursor-pointer"
                     value={selectedCourseId}
@@ -92,8 +127,43 @@ export const EditCertificatesView: React.FC = () => {
                  </select>
               </div>
 
-              <div className="space-y-1">
-                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><User size={12} /> Student Name</label>
+              {/* Background Upload Section */}
+              <div className="space-y-1.5 pt-2">
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><ImageIcon size={12} /> Program Background (PNG)</label>
+                 <div className="relative group">
+                    <input 
+                      type="file" 
+                      accept="image/png" 
+                      className="hidden" 
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center justify-center gap-2 py-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl font-black text-[8px] uppercase text-[#304B9E] hover:border-[#304B9E] transition-all"
+                      >
+                        <Upload size={14} /> Upload PNG
+                      </button>
+                      {currentBackground && (
+                        <button 
+                          onClick={removeBackground}
+                          className="flex items-center justify-center gap-2 py-3 bg-red-50 border-2 border-dashed border-red-100 rounded-xl font-black text-[8px] uppercase text-[#ec2027] hover:bg-red-100 transition-all"
+                        >
+                          <Trash2 size={14} /> Remove
+                        </button>
+                      )}
+                    </div>
+                 </div>
+                 {currentBackground && (
+                   <p className="text-[7px] font-black text-emerald-600 uppercase tracking-widest mt-1 ml-1 flex items-center gap-1">
+                      <CheckCircle2 size={10} /> Custom background active
+                   </p>
+                 )}
+              </div>
+
+              <div className="space-y-1 pt-2">
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><User size={12} /> Preview Name</label>
                  <div className="relative">
                     <Type className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
                     <input 
@@ -101,21 +171,6 @@ export const EditCertificatesView: React.FC = () => {
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-black text-xs uppercase outline-none focus:border-[#3b82f6] transition-all"
                       value={config.studentName}
                       onChange={(e) => setConfig({...config, studentName: e.target.value})}
-                      placeholder="ENTER NAME"
-                    />
-                 </div>
-              </div>
-
-              <div className="space-y-1">
-                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Star size={12} /> Course Override</label>
-                 <div className="relative">
-                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                    <input 
-                      type="text" 
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-black text-xs uppercase outline-none focus:border-[#3b82f6] transition-all"
-                      value={config.courseName}
-                      onChange={(e) => setConfig({...config, courseName: e.target.value})}
-                      placeholder="COURSE NAME"
                     />
                  </div>
               </div>
@@ -142,12 +197,12 @@ export const EditCertificatesView: React.FC = () => {
               </div>
 
               <div className="space-y-2 pt-1">
-                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Palette size={12} /> Palette Control</label>
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Palette size={12} /> Color Overrides</label>
                  <div className="grid grid-cols-3 gap-2">
                     {[
                       { l: 'Brand', v: config.primaryColor, k: 'primaryColor' },
                       { l: 'Accent', v: config.secondaryColor, k: 'secondaryColor' },
-                      { l: 'Highlight', v: config.accentColor, k: 'accentColor' }
+                      { l: 'Text', v: config.accentColor, k: 'accentColor' }
                     ].map(item => (
                       <div key={item.k} className="flex flex-col gap-1">
                         <input 
@@ -163,7 +218,7 @@ export const EditCertificatesView: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Layout size={12} /> Border Finish</label>
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Layout size={12} /> Frame Style</label>
                  <select 
                     className="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl font-black text-[10px] uppercase outline-none focus:border-[#3b82f6] transition-all appearance-none cursor-pointer"
                     value={config.borderStyle}
@@ -185,7 +240,7 @@ export const EditCertificatesView: React.FC = () => {
               }`}
            >
               {isSaving ? <CheckCircle2 size={16} /> : <Save size={16} strokeWidth={3} />}
-              {isSaving ? 'Branding Saved' : 'Save Template'}
+              {isSaving ? 'Saving Assets...' : 'Apply Program Branding'}
            </button>
         </div>
 
@@ -193,13 +248,21 @@ export const EditCertificatesView: React.FC = () => {
         <div className="lg:col-span-8 flex flex-col gap-3 overflow-hidden">
            <div className="bg-slate-200/50 p-4 md:p-6 rounded-[2rem] flex-1 flex items-center justify-center overflow-hidden">
               <div 
-                className="w-full max-w-lg aspect-[1.4/1] bg-white p-8 text-center relative shadow-2xl flex flex-col items-center justify-center overflow-hidden animate-in zoom-in-95"
+                className="w-full max-w-lg aspect-[1.4/1] p-8 text-center relative shadow-2xl flex flex-col items-center justify-center overflow-hidden animate-in zoom-in-95 bg-white"
                 style={{ 
-                  border: `8px ${config.borderStyle} ${config.secondaryColor}`,
-                  borderRadius: '1.5rem'
+                  border: config.borderStyle === 'none' ? 'none' : `8px ${config.borderStyle} ${config.secondaryColor}`,
+                  borderRadius: '1.5rem',
+                  backgroundImage: currentBackground ? `url(${currentBackground})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
                 }}
               >
-                <div className="mb-4 flex flex-col items-center">
+                {/* Backdrop overlay if custom background exists to ensure readability */}
+                {currentBackground && (
+                  <div className="absolute inset-0 bg-white/40 pointer-events-none"></div>
+                )}
+
+                <div className="mb-4 flex flex-col items-center relative z-10">
                   <div className="p-2.5 bg-white rounded-2xl border-2 border-slate-50 shadow-xl mb-3 transform scale-90 inline-block" style={{ boxShadow: `0 15px 20px -5px ${config.primaryColor}20` }}>
                     <BrandLogo />
                   </div>
@@ -207,7 +270,7 @@ export const EditCertificatesView: React.FC = () => {
                   <p className="text-slate-400 font-bold italic text-[10px]">This is proudly presented to</p>
                 </div>
 
-                <div className="mb-6 w-full">
+                <div className="mb-6 w-full relative z-10">
                   <h2 className="text-3xl font-black mb-3 uppercase tracking-tight leading-none truncate px-4" style={{ color: config.primaryColor }}>
                     {config.studentName || 'LEARNER NAME'}
                   </h2>
@@ -218,7 +281,7 @@ export const EditCertificatesView: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-8 w-full max-w-sm mt-2">
+                <div className="grid grid-cols-2 gap-8 w-full max-w-sm mt-2 relative z-10">
                   <div className="space-y-1">
                     <div className="border-t border-slate-100 pt-1.5 font-black uppercase text-[7px] tracking-widest text-slate-400">Main Center HQ</div>
                     <div className="h-0.5 w-8 bg-slate-100 mx-auto rounded-full mt-0.5"></div>
@@ -229,14 +292,14 @@ export const EditCertificatesView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 opacity-[0.05]" style={{ color: config.accentColor }}><Sparkles size={120} /></div>
+                <div className="absolute -bottom-6 -right-6 w-32 h-32 opacity-[0.05] relative z-10" style={{ color: config.accentColor }}><Sparkles size={120} /></div>
               </div>
            </div>
            
            <div className="flex items-center justify-center gap-3">
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md border border-slate-100">
                  <div className="w-2 h-2 rounded-full animate-pulse bg-emerald-500"></div>
-                 <span className="text-[8px] font-black uppercase tracking-widest text-[#304B9E]">Live Preview Active</span>
+                 <span className="text-[8px] font-black uppercase tracking-widest text-[#304B9E]">Dynamic Engine Active</span>
               </div>
            </div>
         </div>

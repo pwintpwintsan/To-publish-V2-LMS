@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MOCK_SCHOOLS, MOCK_COURSES, MOCK_STUDENTS, MOCK_CLASSES } from '../../constants.tsx';
-import { School, Course, Student } from '../../types.ts';
+import { School, Course, Student, UserRole } from '../../types.ts';
 import { 
   ChevronLeft, 
   ChevronRight,
@@ -24,7 +24,9 @@ import {
   Trophy,
   History,
   ClipboardList,
-  MonitorPlay
+  MonitorPlay,
+  Save,
+  BookOpen
 } from 'lucide-react';
 
 interface CenterDetailViewProps {
@@ -34,6 +36,7 @@ interface CenterDetailViewProps {
   onPreviewCourse: (courseId: string) => void;
   onViewSyllabus: (courseId: string) => void;
   checkPermission?: (category: any, action: string) => boolean;
+  activeRole?: UserRole;
 }
 
 const EXTENDED_MOCK_STUDENTS = [
@@ -42,6 +45,63 @@ const EXTENDED_MOCK_STUDENTS = [
   { id: 's4', username: '1000004', firstName: 'Su', lastName: 'Su', status: 'active', attendance: 30, finalGrade: 95 },
   { id: 's5', username: '1000005', firstName: 'Lin', lastName: 'Htut', status: 'active', attendance: 22, finalGrade: 72 },
 ];
+
+const EditStudentModal = ({ student, onClose, onSave }: { student: any, onClose: () => void, onSave: (courseId: string) => void }) => {
+  const [selectedCourseId, setSelectedCourseId] = useState(student.courseId || MOCK_COURSES[0].id);
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl border-t-[12px] border-[#F05A28] relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl">
+          <X size={20} strokeWidth={3} />
+        </button>
+        <div className="text-center mb-8 shrink-0">
+           <div className="w-16 h-16 bg-blue-50 text-[#304B9E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-indigo-100 rotate-3">
+              <User size={32} strokeWidth={3} />
+           </div>
+           <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Modify Enrollment</h3>
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">{student.firstName} {student.lastName}</p>
+        </div>
+        
+        <div className="space-y-6 flex-1">
+           <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Program</label>
+              <div className="relative">
+                 <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                 <select 
+                    value={selectedCourseId}
+                    onChange={(e) => setSelectedCourseId(e.target.value)}
+                    className="w-full pl-12 pr-10 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold text-[#304B9E] focus:border-[#F05A28] outline-none transition-all shadow-inner appearance-none cursor-pointer"
+                 >
+                    {MOCK_COURSES.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                 </select>
+                 <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 rotate-90" size={16} />
+              </div>
+           </div>
+           
+           <div className="p-5 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
+              <Zap size={18} className="text-[#F05A28] shrink-0 mt-1" fill="currentColor" />
+              <p className="text-[10px] font-bold text-slate-600 uppercase leading-relaxed">
+                 Changing the program will reset the learner's progress metrics for the current term within this specific class node.
+              </p>
+           </div>
+        </div>
+
+        <div className="mt-10 grid grid-cols-2 gap-4">
+           <button onClick={onClose} className="py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+           <button 
+             onClick={() => onSave(selectedCourseId)}
+             className="py-5 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 border-b-4 border-black/10 transition-all active:scale-95 hover:bg-[#00a651]"
+           >
+              <Save size={18} strokeWidth={3} /> Update
+           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const StudentProfilePopup = ({ student, onClose }: { student: Student | any, onClose: () => void }) => {
   return (
@@ -188,7 +248,7 @@ const AddStudentsModal = ({ courseName, onClose }: { courseName: string; onClose
   );
 };
 
-const MasterStudentTable = ({ courses, onAddStudent, onShowProfile }: { courses: Course[], onAddStudent: (course: Course) => void, onShowProfile: (student: any) => void }) => {
+const MasterStudentTable = ({ courses, onAddStudent, onShowProfile, onEditStudent }: { courses: Course[], onAddStudent: (course: Course) => void, onShowProfile: (student: any) => void, onEditStudent: (student: any) => void }) => {
   const flattenedData = courses.flatMap((course, cIdx) => {
     const studentCount = cIdx % 3 === 0 ? 1 : cIdx % 3 === 1 ? 2 : 0;
     const assignedStudents = EXTENDED_MOCK_STUDENTS.slice(cIdx, cIdx + studentCount);
@@ -198,7 +258,7 @@ const MasterStudentTable = ({ courses, onAddStudent, onShowProfile }: { courses:
     if (assignedStudents.length > 0) {
       return assignedStudents.map(student => ({
         ...course,
-        studentObj: student,
+        studentObj: { ...student, courseId: course.id, courseName: course.name },
         className,
         studentName: `${student.firstName} ${student.lastName}`,
         studentId: student.username,
@@ -262,12 +322,22 @@ const MasterStudentTable = ({ courses, onAddStudent, onShowProfile }: { courses:
                 </td>
                 <td className="px-10 py-6 text-right">
                   {row.studentName ? (
-                    <button 
-                      onClick={() => onShowProfile(row.studentObj)}
-                      className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
-                    >
-                      <User size={18} strokeWidth={3} />
-                    </button>
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => onEditStudent(row.studentObj)}
+                        className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#F05A28] hover:text-white transition-all active:scale-90"
+                        title="Edit Student"
+                      >
+                        <Edit3 size={18} strokeWidth={3} />
+                      </button>
+                      <button 
+                        onClick={() => onShowProfile(row.studentObj)}
+                        className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
+                        title="View Profile"
+                      >
+                        <User size={18} strokeWidth={3} />
+                      </button>
+                    </div>
                   ) : (
                     <button 
                       onClick={() => onAddStudent(row as unknown as Course)}
@@ -286,15 +356,22 @@ const MasterStudentTable = ({ courses, onAddStudent, onShowProfile }: { courses:
   );
 };
 
-export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, onBack, onManageCourse, onPreviewCourse, onViewSyllabus, checkPermission }) => {
+export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, onBack, onManageCourse, onPreviewCourse, onViewSyllabus, checkPermission, activeRole }) => {
   const [school, setSchool] = useState<School>(MOCK_SCHOOLS.find(s => s.id === centerId) || MOCK_SCHOOLS[0]);
   const [activeTab, setActiveTab] = useState<'students' | 'inventory'>('students');
   const [addStudentsTarget, setAddStudentsTarget] = useState<Course | null>(null);
   const [selectedProfileStudent, setSelectedProfileStudent] = useState<any | null>(null);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const [capacity, setCapacity] = useState(school.currentStudentCount + 20);
+  const [editingStudent, setEditingStudent] = useState<any | null>(null);
 
   const approvedCourses = MOCK_COURSES.filter(c => school.approvedCourseIds?.includes(c.id));
+  
+  // Teachers and School Admins cannot edit courses in the list
+  const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
+
+  const handleUpdateStudentCourse = (newCourseId: string) => {
+    alert(`Learner ${editingStudent.firstName} enrollment updated to ${MOCK_COURSES.find(c => c.id === newCourseId)?.name}`);
+    setEditingStudent(null);
+  };
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden animate-in slide-in-from-right duration-500">
@@ -313,6 +390,14 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
         />
       )}
 
+      {editingStudent && (
+        <EditStudentModal 
+          student={editingStudent} 
+          onClose={() => setEditingStudent(null)} 
+          onSave={handleUpdateStudentCourse}
+        />
+      )}
+
       {/* Header Banner - 4 DIGIT CODE */}
       <div className="w-full bg-[#304B9E] rounded-[2.5rem] p-4 md:p-6 text-white shadow-xl border-b-[10px] border-[#F05A28] flex flex-col gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
@@ -321,7 +406,7 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
               <ChevronLeft size={24} strokeWidth={4} />
            </button>
            <div className="flex-1">
-              <h2 className="text-xl font-black uppercase tracking-tighter leading-none mb-3">School <span className="text-[#F05A28]">Profile</span></h2>
+              <h2 className="text-xl font-black uppercase tracking-tighter leading-none mb-3">Hub <span className="text-[#F05A28]">Profile</span></h2>
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-sm w-full">
                  <div className="flex items-center gap-3 flex-1">
                     <SchoolIcon size={14} className="text-[#F05A28]" strokeWidth={2.5} />
@@ -335,7 +420,7 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
                     <Tag size={14} className="text-[#F05A28]" strokeWidth={2.5} />
                     <div className="flex flex-col">
                        <span className="text-[7px] font-black uppercase text-white/40 tracking-widest leading-none mb-1">School Code</span>
-                       <span className="text-[11px] font-black text-white font-mono tracking-widest leading-none">8192</span>
+                       <span className="text-[11px] font-black text-white font-mono tracking-widest leading-none">{school.id}</span>
                     </div>
                  </div>
                  <div className="hidden md:block w-px h-8 bg-white/10"></div>
@@ -366,7 +451,7 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
              className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2.5 ${activeTab === 'inventory' ? 'bg-[#304B9E] text-white shadow-xl scale-105' : 'text-slate-400 hover:text-[#304B9E]'}`}
            >
              <LayoutGrid size={16} strokeWidth={3} />
-             Syllabus Map
+             Course Lists
            </button>
         </div>
       </div>
@@ -378,6 +463,7 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
                 courses={approvedCourses} 
                 onAddStudent={(course) => setAddStudentsTarget(course)} 
                 onShowProfile={(student) => setSelectedProfileStudent(student)}
+                onEditStudent={(student) => setEditingStudent(student)}
               />
            ) : (
               <div className="space-y-6">
@@ -392,7 +478,9 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
                      </div>
                      <div className="flex items-center gap-3 shrink-0">
                         <button onClick={() => onPreviewCourse(course.id)} className="px-6 py-3 bg-slate-50 text-[#304B9E] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all">Preview</button>
-                        <button onClick={() => onManageCourse(course.id)} className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-xl"><Edit3 size={20} strokeWidth={3} /></button>
+                        {isMainAdmin && (
+                           <button onClick={() => onManageCourse(course.id)} className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-xl"><Edit3 size={20} strokeWidth={3} /></button>
+                        )}
                      </div>
                   </div>
                 ))}

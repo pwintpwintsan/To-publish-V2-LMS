@@ -13,9 +13,19 @@ import {
   X,
   ShieldCheck,
   UserCheck,
-  Save,
   CheckCircle2,
   Globe,
+  Mail,
+  UserPlus,
+  Calendar,
+  Briefcase,
+  Phone,
+  Map,
+  FileText,
+  Fingerprint,
+  Hash,
+  Database,
+  Minus,
   Plus
 } from 'lucide-react';
 
@@ -24,131 +34,275 @@ interface CenterListViewProps {
 }
 
 const RegisterSchoolModal = ({ onClose, onSave }: { onClose: () => void, onSave: (data: any) => void }) => {
+  // Mock last issued ID for simulation
+  const LAST_ISSUED_ID = 10000;
+
   const [formData, setFormData] = useState({
-    name: '',
-    location: '',
-    region: 'Central',
+    schoolName: '',
+    address: '',
+    city: '',
+    country: 'Myanmar',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    contactRole: 'Academic Director',
     adminId: '',
     teacherId: '',
-    studentQuota: 200,
-    type: 'Regional'
+    studentSeats: 25,
+    teacherSeats: 5
   });
+
+  const studentIdRange = useMemo(() => {
+    const start = LAST_ISSUED_ID + 1;
+    const end = LAST_ISSUED_ID + formData.studentSeats;
+    return { start, end };
+  }, [formData.studentSeats]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave({
+      ...formData,
+      generatedIds: studentIdRange
+    });
+  };
+
+  const roles = ['Academic Director', 'Coordinator', 'Teacher'];
+
+  const adjustStudentSeats = (amount: number) => {
+    setFormData(prev => ({
+      ...prev,
+      studentSeats: Math.max(1, Math.min(1000, prev.studentSeats + amount))
+    }));
+  };
+
+  const adjustTeacherSeats = (amount: number) => {
+    setFormData(prev => ({
+      ...prev,
+      teacherSeats: Math.max(1, Math.min(50, prev.teacherSeats + amount))
+    }));
   };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl border-t-[12px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#F05A28]/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+      <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl border-t-[12px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative max-h-[95vh]">
         
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
-          <div className="flex items-center gap-4">
-             <div className="p-3.5 bg-[#304B9E] text-white rounded-2xl shadow-xl rotate-3">
-               <Building2 size={28} strokeWidth={3} />
-             </div>
-             <div>
-               <h2 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Register New School</h2>
-               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Network Expansion Node</p>
-             </div>
+        {/* Header Section */}
+        <div className="p-8 border-b border-slate-100 bg-slate-50/50 shrink-0 relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+            <Fingerprint size={80} />
           </div>
-          <button onClick={onClose} className="p-2 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-xl shadow-sm border border-slate-100 active:scale-95">
-            <X size={20} strokeWidth={4} />
-          </button>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-[#304B9E] text-white rounded-2xl shadow-xl">
+                <Building2 size={24} strokeWidth={3} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">School registration</h2>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Direct registration Protocol</p>
+                
+                {/* Distributor and Date Information */}
+                <div className="mt-4 flex flex-col sm:flex-row gap-4 sm:gap-10 border-t border-slate-200/60 pt-4">
+                   <div>
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Distributor / Agent</p>
+                      <p className="text-[9px] font-black text-[#304B9E] uppercase">Digital Information Resources Co, Ltds.</p>
+                   </div>
+                   <div>
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Date</p>
+                      <p className="text-[9px] font-black text-[#304B9E] uppercase">2, February 2025</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-xl shadow-sm border border-slate-100 active:scale-95">
+              <X size={20} strokeWidth={4} />
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 scrollbar-hide">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1.5 md:col-span-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">School Name</label>
-                 <input 
-                   required
-                   type="text" 
-                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3.5 font-black text-[#304B9E] text-sm outline-none focus:border-[#F05A28] transition-all shadow-inner uppercase"
-                   placeholder="e.g. Mandalay Tech School"
-                   value={formData.name}
-                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                 />
-              </div>
-
-              <div className="space-y-1.5">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location City</label>
-                 <input 
-                   required
-                   type="text" 
-                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3.5 font-black text-[#304B9E] text-sm outline-none focus:border-[#F05A28] transition-all shadow-inner uppercase"
-                   placeholder="e.g. Mandalay"
-                   value={formData.location}
-                   onChange={(e) => setFormData({...formData, location: e.target.value})}
-                 />
-              </div>
-
-              <div className="space-y-1.5">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Region</label>
-                 <div className="relative">
-                   <select 
-                     className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3.5 font-black text-[#304B9E] text-sm outline-none focus:border-[#F05A28] transition-all shadow-inner appearance-none cursor-pointer"
-                     value={formData.region}
-                     onChange={(e) => setFormData({...formData, region: e.target.value})}
-                   >
-                     {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                   </select>
-                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={18} />
-                 </div>
-              </div>
-
-              <div className="space-y-1.5 p-5 bg-[#304B9E]/5 rounded-[2rem] border-2 border-[#304B9E]/10 md:col-span-2 mt-2">
-                 <h4 className="text-[9px] font-black text-[#304B9E] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <ShieldCheck size={14} className="text-[#F05A28]" /> Staff Assignments
-                 </h4>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                       <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">School Admin ID</label>
-                       <div className="relative">
-                          <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                          <input 
-                            required
-                            type="text" 
-                            className="w-full bg-white border-2 border-slate-100 rounded-xl pl-10 pr-4 py-2.5 font-mono font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all"
-                            placeholder="SA-9900"
-                            value={formData.adminId}
-                            onChange={(e) => setFormData({...formData, adminId: e.target.value})}
-                          />
-                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                       <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Teacher ID</label>
-                       <div className="relative">
-                          <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
-                          <input 
-                            required
-                            type="text" 
-                            className="w-full bg-white border-2 border-slate-100 rounded-xl pl-10 pr-4 py-2.5 font-mono font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all"
-                            placeholder="T-4421"
-                            value={formData.teacherId}
-                            onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
-                          />
-                       </div>
-                    </div>
-                 </div>
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 scrollbar-hide space-y-8">
+           {/* Section 1: School Information */}
+           <div className="space-y-4">
+              <h3 className="text-[10px] font-black text-[#F05A28] uppercase tracking-[0.3em] flex items-center gap-2 border-b border-slate-100 pb-2">
+                <MapPin size={14} /> School / Institution Information
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">School / Institution Name</label>
+                  <input 
+                    required
+                    type="text" 
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all shadow-inner uppercase"
+                    placeholder="e.g. EDULIGHT SCHOOL"
+                    value={formData.schoolName}
+                    onChange={(e) => setFormData({...formData, schoolName: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Complete Address</label>
+                  <textarea 
+                    required
+                    rows={2}
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all shadow-inner uppercase resize-none"
+                    placeholder="STREET, QUARTER, DISTRICT..."
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  />
+                </div>
               </div>
            </div>
 
-           <div className="mt-8 flex items-center gap-4">
+           {/* Section 2: Capacity & Automatic ID Generation */}
+           <div className="space-y-4">
+              <h3 className="text-[10px] font-black text-[#304B9E] uppercase tracking-[0.3em] flex items-center gap-2 border-b border-slate-100 pb-2">
+                <Database size={14} /> Capacity & Automated Provisioning
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Student Seats Counter */}
+                <div className="space-y-4">
+                   <div className="flex items-center justify-between px-1">
+                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Student Seats</label>
+                      <span className="text-[10px] font-black text-[#F05A28] uppercase bg-orange-50 px-2 py-0.5 rounded border border-orange-100">{formData.studentSeats} Slots</span>
+                   </div>
+                   
+                   <div className="flex items-center gap-4">
+                      <button 
+                        type="button"
+                        onClick={() => adjustStudentSeats(-5)}
+                        className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#F05A28] hover:border-[#F05A28] hover:shadow-lg transition-all active:scale-90 shadow-sm"
+                      >
+                        <Minus size={20} strokeWidth={4} />
+                      </button>
+                      
+                      <div className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] py-3 text-center shadow-inner relative group">
+                         <span className="text-2xl font-black text-[#304B9E]">{formData.studentSeats}</span>
+                         <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#F05A28]/20 rounded-[1.5rem] pointer-events-none transition-all"></div>
+                      </div>
+
+                      <button 
+                        type="button"
+                        onClick={() => adjustStudentSeats(5)}
+                        className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#F05A28] hover:border-[#F05A28] hover:shadow-lg transition-all active:scale-90 shadow-sm"
+                      >
+                        <Plus size={20} strokeWidth={4} />
+                      </button>
+                   </div>
+
+                   <div className="p-4 bg-[#304B9E] rounded-2xl border-b-4 border-black/10 shadow-lg relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-2 opacity-10">
+                         <Hash size={40} className="text-white" />
+                      </div>
+                      <p className="text-[7px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">Generated Student ID Range</p>
+                      <div className="flex items-center gap-3">
+                         <span className="text-sm font-mono font-black text-white">{studentIdRange.start}</span>
+                         <ArrowRight size={14} className="text-[#F05A28]" strokeWidth={4} />
+                         <span className="text-sm font-mono font-black text-white">{studentIdRange.end}</span>
+                      </div>
+                   </div>
+                </div>
+
+                {/* Teacher Quota Counter */}
+                <div className="space-y-4">
+                   <div className="flex items-center justify-between px-1">
+                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Teacher Quota</label>
+                      <span className="text-[10px] font-black text-[#3b82f6] uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{formData.teacherSeats} Staff</span>
+                   </div>
+                   
+                   <div className="flex items-center gap-4">
+                      <button 
+                        type="button"
+                        onClick={() => adjustTeacherSeats(-1)}
+                        className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#3b82f6] hover:border-[#3b82f6] hover:shadow-lg transition-all active:scale-90 shadow-sm"
+                      >
+                        <Minus size={20} strokeWidth={4} />
+                      </button>
+                      
+                      <div className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] py-3 text-center shadow-inner relative group">
+                         <span className="text-2xl font-black text-[#304B9E]">{formData.teacherSeats}</span>
+                      </div>
+
+                      <button 
+                        type="button"
+                        onClick={() => adjustTeacherSeats(1)}
+                        className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#3b82f6] hover:border-[#3b82f6] hover:shadow-lg transition-all active:scale-90 shadow-sm"
+                      >
+                        <Plus size={20} strokeWidth={4} />
+                      </button>
+                   </div>
+                   
+                   <div className="p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#3b82f6] flex items-center justify-center flex-shrink-0">
+                         <Users size={16} strokeWidth={3} />
+                      </div>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-tight">
+                        Teachers are assigned sequential staff identifiers upon activation
+                      </p>
+                   </div>
+                </div>
+              </div>
+           </div>
+
+           {/* Section 3: Contact Person */}
+           <div className="space-y-4">
+              <h3 className="text-[10px] font-black text-[#F05A28] uppercase tracking-[0.3em] flex items-center gap-2 border-b border-slate-100 pb-2">
+                <UserCheck size={14} /> Contact Person Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                  <input 
+                    required
+                    type="text" 
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all shadow-inner uppercase"
+                    placeholder="MIN HEIN ZAW"
+                    value={formData.contactName}
+                    onChange={(e) => setFormData({...formData, contactName: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Role Selection</label>
+                  <div className="relative">
+                     <select 
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all shadow-inner appearance-none cursor-pointer"
+                        value={formData.contactRole}
+                        onChange={(e) => setFormData({...formData, contactRole: e.target.value})}
+                     >
+                        {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                     </select>
+                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                    <input 
+                      required
+                      type="text" 
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl pl-10 pr-4 py-3 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all shadow-inner"
+                      placeholder="09..."
+                      value={formData.contactPhone}
+                      onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+           </div>
+
+           {/* Submit */}
+           <div className="pt-4 flex gap-4">
               <button 
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
+                className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
               >
                 Cancel
               </button>
               <button 
                 type="submit"
-                className="flex-[2] py-4 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#F05A28] transition-all border-b-4 border-black/10 active:scale-95 flex items-center justify-center gap-2"
+                className="flex-[2] py-5 bg-[#304B9E] text-white rounded-2xl font-black [text-transform:uppercase] text-[10px] tracking-[0.2em] shadow-xl hover:bg-[#F05A28] transition-all border-b-6 border-black/10 active:scale-95 flex items-center justify-center gap-3"
               >
-                <CheckCircle2 size={18} strokeWidth={3} /> Activate School
+                <CheckCircle2 size={20} strokeWidth={3} /> Submit registration
               </button>
            </div>
         </form>
@@ -162,19 +316,22 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
   const [regionFilter, setRegionFilter] = useState('All Regions');
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-  const regions = ['All Regions', 'Central', 'West', 'East', 'North', 'South'];
+  const regions = ['All Regions', ...REGIONS];
 
   const filteredSchools = useMemo(() => {
     return MOCK_SCHOOLS.filter(school => {
       const matchesSearch = school.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           school.location.toLowerCase().includes(searchTerm.toLowerCase());
+                           school.id.includes(searchTerm);
       const matchesRegion = regionFilter === 'All Regions' || school.region === regionFilter;
       return matchesSearch && matchesRegion;
     });
   }, [searchTerm, regionFilter]);
 
-  const handleSaveHub = (data: any) => {
-    alert(`School "${data.name}" registered successfully with Admin: ${data.adminId} and Teacher: ${data.teacherId}`);
+  const handleSaveSchool = (data: any) => {
+    alert(`Registration for "${data.schoolName}" received!\n` +
+          `Seats Provisioned: ${data.studentSeats}\n` +
+          `Unique IDs assigned: ${data.generatedIds.start} – ${data.generatedIds.end}\n` +
+          `IDs are sequentially generated and duplicate-proof.`);
     setIsRegisterModalOpen(false);
   };
 
@@ -184,11 +341,10 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
       {isRegisterModalOpen && (
         <RegisterSchoolModal 
           onClose={() => setIsRegisterModalOpen(false)} 
-          onSave={handleSaveHub} 
+          onSave={handleSaveSchool} 
         />
       )}
 
-      {/* Modern Directory Header */}
       <div className="w-full bg-[#304B9E] rounded-[2.5rem] p-6 md:p-8 text-white shadow-xl border-b-[10px] border-[#F05A28] flex flex-col md:flex-row items-center justify-between gap-6 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
         
@@ -202,14 +358,12 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
            </div>
         </div>
 
-        <div className="flex items-center gap-4 relative z-10">
-           <button 
-             onClick={() => setIsRegisterModalOpen(true)}
-             className="px-8 py-3.5 bg-white text-[#304B9E] rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#F05A28] hover:text-white transition-all border-b-4 border-black/10 flex items-center gap-2 active:scale-95"
-           >
-              <PlusCircle size={20} strokeWidth={3} /> Register New School
-           </button>
-        </div>
+        <button 
+          onClick={() => setIsRegisterModalOpen(true)}
+          className="px-8 py-3.5 bg-white text-[#304B9E] rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#F05A28] hover:text-white transition-all border-b-4 border-black/10 flex items-center gap-2 active:scale-95 z-10"
+        >
+          <PlusCircle size={20} strokeWidth={3} /> Register School
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 mt-2">
@@ -218,7 +372,7 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
             <input 
               type="text" 
-              placeholder="Search by name or ID..." 
+              placeholder="Search schools..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-white border-2 border-slate-100 pl-10 pr-4 py-3 rounded-2xl text-xs font-black text-[#304B9E] outline-none focus:border-[#F05A28] transition-all w-full sm:w-64 uppercase shadow-sm placeholder:text-slate-200"
@@ -240,7 +394,7 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Status:</span>
            <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[10px] font-black text-[#304B9E] uppercase">{filteredSchools.length} Nodes Online</span>
+              <span className="text-[10px] font-black text-[#304B9E] uppercase">{filteredSchools.length} Schools Active</span>
            </div>
         </div>
       </div>
@@ -258,7 +412,7 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
                   <Building2 size={24} strokeWidth={3} />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[9px] font-black text-[#F05A28] uppercase tracking-[0.2em] block mb-1">NODE: {school.id.toUpperCase()}</span>
+                  <span className="text-[9px] font-black text-[#F05A28] uppercase tracking-[0.2em] block mb-1">CODE: {school.id}</span>
                   <h3 className="text-lg font-black text-[#304B9E] tracking-tight truncate leading-none uppercase">{school.name}</h3>
                 </div>
               </div>
@@ -272,7 +426,7 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
                     </div>
                  </div>
                  <p className="text-[10px] text-slate-400 line-clamp-1 italic uppercase tracking-tight font-bold opacity-60">
-                    {school.description || "Active U Book Store School node providing curriculum services."}
+                    {school.description || "Active U Book Store node providing curriculum services."}
                  </p>
               </div>
 
@@ -308,7 +462,7 @@ export const CenterListView: React.FC<CenterListViewProps> = ({ onEnterCenter })
           {filteredSchools.length === 0 && (
              <div className="py-32 text-center bg-white rounded-[3rem] border-4 border-dashed border-slate-50 opacity-40">
                 <Search size={64} className="mx-auto text-slate-200 mb-4" />
-                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">No schools matched search</h4>
+                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">No schools matched</h4>
                 <p className="text-sm font-bold text-slate-400 mt-2 uppercase">Adjust your filters and try again</p>
              </div>
           )}

@@ -46,19 +46,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
   };
 
   const adminItems = [
-    activeRole === UserRole.SUPER_ADMIN 
-      ? { id: View.CENTER_PROFILE, label: 'Center Profile', icon: Settings2, category: 'accounts' }
+    activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN
+      ? { id: View.CENTER_PROFILE, label: 'Hub Profile', icon: Settings2, category: 'accounts' }
       : { id: View.CENTER_LIST, label: 'School Directory', icon: Building2, category: 'accounts' },
     
-    // School Admin keeps 'Classes' view, Main Center Admin doesn't
-    ...(activeRole === UserRole.SUPER_ADMIN 
+    ...(activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN
       ? [{ id: View.CLASSES, label: 'Classes', icon: LayoutGrid, category: 'accounts' }] 
       : []),
 
-    // Main Center Admin goes to management view, others go to library view
     { 
       id: activeRole === UserRole.MAIN_CENTER ? View.COURSES_ADMIN : View.MY_CLASSES, 
-      label: 'Courses', 
+      label: 'Programs', 
       icon: Library, 
       category: 'accounts' 
     },
@@ -68,13 +66,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
     { id: View.ROLES_PERMISSIONS, label: 'Access', icon: ShieldCheck, category: 'accounts' },
     { id: View.RESOURCES, label: 'Library', icon: FileSearch, category: 'resources' },
     { id: View.EDIT_CERTIFICATES, label: 'Branding', icon: Award, category: 'certificates' },
-    { id: View.ACCOUNT_CREATION, label: 'Accounts', icon: UserPlus, category: 'accounts' },
+    { id: View.EDIT_CERTIFICATES, label: 'Accounts', icon: UserPlus, category: 'accounts' },
   ].filter(item => {
     return checkPermission(item.category as any, 'view');
   });
 
   const teacherItems = [
-    { id: View.MY_CLASSES, label: 'Courses', icon: BookOpen, category: 'accounts' },
+    { id: View.CENTER_PROFILE, label: 'Hub Profile', icon: Settings2, category: 'accounts' },
+    { id: View.MY_CLASSES, label: 'Programs', icon: BookOpen, category: 'accounts' },
     { id: View.CLASSES, label: 'Classes', icon: LayoutGrid, category: 'accounts' },
     { id: View.STUDENTS, label: 'Roster', icon: Users, category: 'accounts' },
     { id: View.REPORTS, label: 'Reports', icon: BarChart3, category: 'reports' },
@@ -96,9 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
           <nav className="space-y-1 overflow-y-auto scrollbar-hide">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              // Handle active state for both versions of the Courses view
-              const isActive = currentView === item.id || 
-                             (item.label === 'Courses' && (currentView === View.MY_CLASSES || currentView === View.COURSES_ADMIN));
+              const isActive = currentView === item.id;
               return (
                 <button
                   key={item.id}
@@ -116,10 +113,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, act
         </div>
         <div className="p-4 bg-slate-50 border-t border-slate-100">
            <div className="flex items-center gap-3 px-2 py-1">
-              <div className="w-8 h-8 rounded-lg bg-[#ec2027] flex items-center justify-center text-white text-[10px] font-bold">HQ</div>
+              <div className="w-8 h-8 rounded-lg bg-[#ec2027] flex items-center justify-center text-white text-[10px] font-bold">U</div>
               <div>
-                 <p className="text-[10px] font-bold text-[#304B9E] uppercase leading-none">System Stable</p>
-                 <p className="text-[8px] text-slate-400 mt-0.5">v2.4.0-release</p>
+                 <p className="text-[10px] font-bold text-[#304B9E] uppercase leading-none">U Book Store</p>
+                 <p className="text-[8px] text-slate-400 mt-0.5">LMS v2.5</p>
               </div>
            </div>
         </div>

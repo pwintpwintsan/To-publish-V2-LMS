@@ -118,7 +118,7 @@ const App: React.FC = () => {
   const renderView = () => {
     switch (currentView) {
       case View.LANDING:
-        return <LandingPageView onLogin={() => setIsLoggedIn(true)} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
+        return <LandingPageView onLogin={(role) => { if(role) setActiveRole(role); setIsLoggedIn(true); }} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
       case View.CHECKOUT:
         return currentOrder ? <OrderCheckoutView order={currentOrder} onBack={() => setCurrentView(View.MY_CLASSES)} /> : null;
       case View.MY_CLASSES:
@@ -215,7 +215,7 @@ const App: React.FC = () => {
                                     activeRole={activeRole}
                                   /> : null;
       default:
-        return <LandingPageView onLogin={() => setIsLoggedIn(true)} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
+        return <LandingPageView onLogin={(role) => { if(role) setActiveRole(role); setIsLoggedIn(true); }} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
     }
   };
 

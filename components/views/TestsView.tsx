@@ -333,18 +333,11 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
   const canEdit = checkPermission?.('courses', 'edit') ?? true;
 
   const filteredModules = useMemo(() => {
-    let baseModules: (Module & { courseName?: string, courseId: string })[] = [];
+    if (selectedId === 'all') return []; // If "Choose Programs" is selected, hide everything
 
-    if (selectedId === 'all') {
-      courses.forEach(c => {
-        c.modules.forEach(m => {
-          baseModules.push({ ...m, courseName: c.name, courseId: c.id });
-        });
-      });
-    } else {
-      const c = courses.find(c => c.id === selectedId);
-      if (c) baseModules = c.modules.map(m => ({ ...m, courseName: c.name, courseId: c.id }));
-    }
+    let baseModules: (Module & { courseName?: string, courseId: string })[] = [];
+    const c = courses.find(c => c.id === selectedId);
+    if (c) baseModules = c.modules.map(m => ({ ...m, courseName: c.name, courseId: c.id }));
 
     return baseModules.filter(m => 
       m.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -447,7 +440,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
             onChange={(e) => setSelectedId(e.target.value)} 
             className="w-full bg-slate-50 pl-4 pr-10 py-2.5 rounded-xl border border-slate-100 outline-none font-black text-[10px] text-[#304B9E] uppercase appearance-none cursor-pointer focus:border-[#6366f1] transition-all shadow-inner"
           >
-            <option value="all">All Registered Programs</option>
+            <option value="all">Choose Programs</option>
             {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-[#6366f1] transition-colors" />
@@ -468,52 +461,65 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
       {/* Modules Grid */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredModules.map((module, i) => {
-            const quizLesson = module.lessons.find(l => l.type === 'quiz');
-            const isActive = quizLesson?.isPublished || false;
-            return (
-              <div key={module.id} className={`group bg-white rounded-[2rem] p-6 shadow-md border-4 transition-all hover:shadow-xl flex flex-col gap-4 relative overflow-hidden ${isActive ? 'border-emerald-50 hover:border-emerald-200' : 'border-slate-50 hover:border-slate-200'}`}>
-                <div className="flex items-center justify-between relative z-10">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-md border-b-2 border-black/10 transition-all ${isActive ? 'bg-[#00a651] text-white rotate-3' : 'bg-slate-100 text-slate-300'}`}>
-                    {isActive ? <Zap size={18} fill="currentColor" /> : i + 1}
+          {selectedId === 'all' ? (
+             <div className="col-span-full py-32 text-center opacity-40">
+                <Layers size={64} className="mx-auto text-slate-200 mb-4" />
+                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">Select a Program</h4>
+                <p className="text-sm font-bold text-slate-400 mt-2 uppercase">Please choose a program from the menu above to manage assessments</p>
+             </div>
+          ) : filteredModules.length > 0 ? (
+            filteredModules.map((module, i) => {
+              const quizLesson = module.lessons.find(l => l.type === 'quiz');
+              const isActive = quizLesson?.isPublished || false;
+              return (
+                <div key={module.id} className={`group bg-white rounded-[2rem] p-6 shadow-md border-4 transition-all hover:shadow-xl flex flex-col gap-4 relative overflow-hidden ${isActive ? 'border-emerald-50 hover:border-emerald-200' : 'border-slate-50 hover:border-slate-200'}`}>
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-md border-b-2 border-black/10 transition-all ${isActive ? 'bg-[#00a651] text-white rotate-3' : 'bg-slate-100 text-slate-300'}`}>
+                      {isActive ? <Zap size={18} fill="currentColor" /> : i + 1}
+                    </div>
+                    <SwitchToggle active={isActive} onClick={() => togglePublish(module.courseId, module.id)} />
                   </div>
-                  <SwitchToggle active={isActive} onClick={() => togglePublish(module.courseId, module.id)} />
-                </div>
 
-                <div className="min-w-0 relative z-10">
-                  <span className="px-2 py-0.5 bg-blue-50 text-[#304B9E] rounded-md text-[8px] font-black uppercase tracking-widest border border-blue-100 mb-2 inline-block">
-                    {module.courseName}
-                  </span>
-                  <h4 className="text-base font-black text-[#304B9E] uppercase tracking-tight leading-tight group-hover:text-[#6366f1] transition-colors line-clamp-1">{module.title}</h4>
-                  <div className="flex items-center gap-2 mt-2">
-                     <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#00a651] animate-pulse' : 'bg-slate-300'}`}></div>
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{isActive ? 'Live Assessment' : 'Draft Protocol'}</p>
+                  <div className="min-w-0 relative z-10">
+                    <span className="px-2 py-0.5 bg-blue-50 text-[#304B9E] rounded-md text-[8px] font-black uppercase tracking-widest border border-blue-100 mb-2 inline-block">
+                      {module.courseName}
+                    </span>
+                    <h4 className="text-base font-black text-[#304B9E] uppercase tracking-tight leading-tight group-hover:text-[#6366f1] transition-colors line-clamp-1">{module.title}</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                       <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#00a651] animate-pulse' : 'bg-slate-300'}`}></div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{isActive ? 'Live Assessment' : 'Draft Protocol'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto pt-4 border-t-2 border-slate-50 flex items-center gap-2 relative z-10">
+                    {canEdit ? (
+                      <button 
+                        onClick={() => setEditingContext({ courseId: module.courseId, moduleId: module.id })} 
+                        className="flex-1 py-3 bg-[#304B9E] text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#6366f1] transition-all flex items-center justify-center gap-2 shadow-md border-b-4 border-black/10 active:scale-95 group/edit"
+                      >
+                        <FileEdit size={14} strokeWidth={3} className="group-hover/edit:rotate-12 transition-transform" /> 
+                        Edit Exam
+                      </button>
+                    ) : (
+                      <button 
+                        className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                      >
+                        <Eye size={14} strokeWidth={3} /> Preview
+                      </button>
+                    )}
+                    <button className="p-3 bg-white text-slate-200 rounded-xl border-2 border-slate-50 hover:text-[#ec2027] hover:border-red-100 transition-all shadow-sm">
+                       <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
-                
-                <div className="mt-auto pt-4 border-t-2 border-slate-50 flex items-center gap-2 relative z-10">
-                  {canEdit ? (
-                    <button 
-                      onClick={() => setEditingContext({ courseId: module.courseId, moduleId: module.id })} 
-                      className="flex-1 py-3 bg-[#304B9E] text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#6366f1] transition-all flex items-center justify-center gap-2 shadow-md border-b-4 border-black/10 active:scale-95 group/edit"
-                    >
-                      <FileEdit size={14} strokeWidth={3} className="group-hover/edit:rotate-12 transition-transform" /> 
-                      Edit Exam
-                    </button>
-                  ) : (
-                    <button 
-                      className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
-                    >
-                      <Eye size={14} strokeWidth={3} /> Preview
-                    </button>
-                  )}
-                  <button className="p-3 bg-white text-slate-200 rounded-xl border-2 border-slate-50 hover:text-[#ec2027] hover:border-red-100 transition-all shadow-sm">
-                     <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="col-span-full py-20 text-center opacity-30">
+               <Search size={48} className="mx-auto text-slate-300 mb-2" />
+               <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-widest">No results</h4>
+            </div>
+          )}
         </div>
       </div>
     </div>
