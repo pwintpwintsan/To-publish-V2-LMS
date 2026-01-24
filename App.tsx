@@ -52,7 +52,6 @@ const App: React.FC = () => {
       reports: { view: false },
     },
     'Teacher': {
-      // Granted edit permission for courses so teachers can edit exams
       courses: { view: true, edit: true, delete: false },
       certificates: { view: true, edit: true },
       accounts: { view: true, create: false, edit: false, delete: false },
@@ -60,7 +59,6 @@ const App: React.FC = () => {
       reports: { view: true },
     },
     'Super Admin': {
-      // Granted edit permission for courses for full hub control
       courses: { view: true, edit: true, delete: false },
       certificates: { view: true, edit: true },
       accounts: { view: true, create: true, edit: true, delete: true },
@@ -71,7 +69,7 @@ const App: React.FC = () => {
       courses: { view: true, edit: true, delete: true },
       certificates: { view: true, edit: true },
       accounts: { view: true, create: true, edit: true, delete: true },
-      resources: { view: true, upload: true, delete: true, download: false },
+      resources: { view: true, upload: false, delete: false, download: false },
       reports: { view: true },
     }
   });
@@ -79,8 +77,9 @@ const App: React.FC = () => {
   // Helper to check user permissions based on active role
   const checkPermission = useCallback((category: keyof UserPermissions, action: string): boolean => {
     if (!isLoggedIn) return category === 'courses' && action === 'view';
+    
+    // Main Center has absolute authority
     if (activeRole === UserRole.MAIN_CENTER) {
-        if (category === 'resources' && action === 'download') return false;
         return true;
     }
     

@@ -4,90 +4,19 @@ import {
   FileText, 
   PlayCircle, 
   Search, 
-  FileSearch, 
-  Plus, 
   FileUp, 
   X, 
   Save, 
   Trash2, 
-  ChevronDown,
-  Eye,
-  MonitorPlay,
-  Maximize2,
-  ShieldAlert
+  FileSearch,
+  Download,
+  ShieldAlert,
+  Loader2
 } from 'lucide-react';
 
 interface TeachingResourcesViewProps {
   checkPermission?: (category: any, action: string) => boolean;
 }
-
-const ResourceViewer = ({ resource, onClose }: { resource: any, onClose: () => void }) => {
-  const isVideo = resource.type === 'Video';
-  
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2rem] w-full max-w-4xl h-full max-h-[80vh] shadow-[0_40px_100px_rgba(0,0,0,0.5)] border-t-[8px] border-[#304B9E] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-        
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
-          <div className="flex items-center gap-3">
-             <div className={`p-2.5 rounded-xl text-white shadow-lg ${isVideo ? 'bg-[#304B9E]' : 'bg-[#F05A28]'}`}>
-               {isVideo ? <MonitorPlay size={20} strokeWidth={3} /> : <FileText size={20} strokeWidth={3} />}
-             </div>
-             <div>
-               <h2 className="text-base font-black text-[#304B9E] uppercase tracking-tighter leading-none">{resource.title}</h2>
-               <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mt-1">{resource.book} • {resource.type}</p>
-             </div>
-          </div>
-          <button onClick={onClose} className="p-2 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-xl shadow-sm border border-slate-100 active:scale-95">
-            <X size={18} strokeWidth={4} />
-          </button>
-        </div>
-
-        <div className="flex-1 bg-slate-900 overflow-hidden relative group">
-          {isVideo ? (
-            <div className="w-full h-full flex items-center justify-center relative">
-               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-10"></div>
-               <PlayCircle size={60} className="text-white/20 absolute z-10 group-hover:scale-110 transition-transform cursor-pointer" strokeWidth={1} />
-               <img src={`https://picsum.photos/seed/${resource.id}/1280/720`} className="w-full h-full object-contain" alt="" />
-               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-1/2 h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#F05A28] w-1/3 rounded-full"></div>
-               </div>
-            </div>
-          ) : (
-            <div className="w-full h-full bg-slate-200 overflow-y-auto scrollbar-hide p-4 md:p-6 flex flex-col items-center">
-               <div className="w-full max-w-2xl bg-white shadow-2xl rounded-lg min-h-[120%] p-6 md:p-10 relative mb-10">
-                  <div className="absolute top-6 right-6 opacity-5"><FileSearch size={80} /></div>
-                  <h1 className="text-xl font-serif text-slate-800 mb-6 border-b border-slate-100 pb-4">{resource.title}</h1>
-                  <div className="space-y-3">
-                     <div className="h-2 bg-slate-50 rounded w-full"></div>
-                     <div className="h-2 bg-slate-50 rounded w-11/12"></div>
-                     <div className="h-2 bg-slate-50 rounded w-full"></div>
-                     <div className="h-2 bg-slate-50 rounded w-10/12"></div>
-                     <div className="h-3 bg-slate-100 rounded w-3/4 h-48 mt-8 flex items-center justify-center">
-                        <MonitorPlay size={32} className="text-slate-200" />
-                     </div>
-                  </div>
-               </div>
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
-           <div className="flex items-center gap-2">
-              <div className="px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-1.5">
-                 <Maximize2 size={12} className="text-slate-400" />
-                 <span className="text-[8px] font-black uppercase text-slate-500 tracking-widest">Theater</span>
-              </div>
-              <div className="flex items-center gap-1 text-[#ec2027] font-black text-[7px] uppercase tracking-widest bg-red-50 px-2.5 py-1.5 rounded-lg">
-                 <ShieldAlert size={10} /> Restricted
-              </div>
-           </div>
-           <button onClick={onClose} className="px-6 py-3 bg-[#304B9E] text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#6366f1] transition-all shadow-xl active:scale-95">Return</button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const UploadAssetModal = ({ onClose, onUpload }: { onClose: () => void, onUpload: (asset: any) => void }) => {
   const [formData, setFormData] = useState({
@@ -146,9 +75,7 @@ const UploadAssetModal = ({ onClose, onUpload }: { onClose: () => void, onUpload
 
 export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ checkPermission }) => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [viewingResource, setViewingResource] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [bookFilter, setBookFilter] = useState('All Series');
   const [resources, setResources] = useState([
     { id: 1, title: 'Teacher Guide: Introduction to Logic', type: 'PDF', size: '2.4 MB', lang: 'English', book: 'Digital Kids V2' },
     { id: 2, title: 'Animated Module 1: Binary Concepts', type: 'Video', size: '45 MB', lang: 'English', book: 'Digital Kids V1' },
@@ -158,14 +85,14 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
 
   const canUpload = checkPermission?.('resources', 'upload') ?? true;
   const canDelete = checkPermission?.('resources', 'delete') ?? true;
+  const canDownload = checkPermission?.('resources', 'download') ?? true;
 
   const filteredResources = useMemo(() => {
     return resources.filter(res => {
       const matchesSearch = res.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesBook = bookFilter === 'All Series' || res.book === bookFilter;
-      return matchesSearch && matchesBook;
+      return matchesSearch;
     });
-  }, [resources, searchTerm, bookFilter]);
+  }, [resources, searchTerm]);
 
   const handleUpload = (newAsset: any) => {
     setResources([newAsset, ...resources]);
@@ -173,9 +100,14 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this resource?")) {
+    if (confirm("Are you sure you want to permanently remove this resource?")) {
       setResources(resources.filter(r => r.id !== id));
     }
+  };
+
+  const handleDownload = (res: any) => {
+    alert(`Initializing secure download for: ${res.title}\nFormat: ${res.type}`);
+    // Simulated download logic
   };
 
   return (
@@ -184,13 +116,6 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
         <UploadAssetModal 
           onClose={() => setIsUploadModalOpen(false)} 
           onUpload={handleUpload} 
-        />
-      )}
-
-      {viewingResource && (
-        <ResourceViewer 
-          resource={viewingResource} 
-          onClose={() => setViewingResource(null)} 
         />
       )}
 
@@ -224,7 +149,7 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
             placeholder="Search hub library..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-transparent text-[11px] font-black text-[#304B9E] outline-none w-full placeholder:text-slate-300 uppercase"
+            className="bg-transparent text-[11px] font-black text-[#304B9E] outline-none w-full placeholder:text-slate-200 uppercase"
           />
         </div>
       </div>
@@ -232,9 +157,9 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredResources.map((res) => (
-            <div key={res.id} className="bg-white rounded-2xl p-4 md:p-5 border-2 border-slate-50 hover:border-[#304B9E]/20 transition-all group shadow-md flex items-start gap-3 relative overflow-hidden">
-              <div className={`w-10 h-10 md:w-11 md:h-11 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform group-hover:rotate-6 shadow-md ${res.type === 'Video' ? 'bg-blue-100 text-[#304B9E]' : 'bg-orange-100 text-[#F05A28]'}`}>
-                {res.type === 'Video' ? <PlayCircle size={18} strokeWidth={2.5} /> : <FileText size={18} strokeWidth={2.5} />}
+            <div key={res.id} className="bg-white rounded-2xl p-4 md:p-5 border-2 border-slate-50 hover:border-[#304B9E]/20 transition-all group shadow-md flex items-start gap-4 relative overflow-hidden">
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:rotate-6 shadow-md ${res.type === 'Video' ? 'bg-blue-100 text-[#304B9E]' : 'bg-orange-100 text-[#F05A28]'}`}>
+                {res.type === 'Video' ? <PlayCircle size={20} strokeWidth={2.5} /> : <FileText size={20} strokeWidth={2.5} />}
               </div>
               
               <div className="flex-1 min-w-0">
@@ -242,22 +167,41 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
                   <span className="text-[6px] font-black uppercase tracking-widest text-[#F05A28] bg-orange-50 px-1.5 py-0.5 rounded-full">{res.type}</span>
                   <span className="text-[6px] font-black text-slate-300 uppercase tracking-widest">{res.size}</span>
                 </div>
-                <h4 className="text-[11px] font-black text-[#304B9E] uppercase tracking-tight leading-snug group-hover:text-[#F05A28] transition-colors line-clamp-1">{res.title}</h4>
+                <h4 className="text-[11px] font-black text-[#304B9E] uppercase tracking-tight leading-snug group-hover:text-[#F05A28] transition-colors line-clamp-2">{res.title}</h4>
                 <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1">{res.book}</p>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <button 
-                   onClick={() => setViewingResource(res)}
-                   className="p-2.5 bg-blue-50 text-[#304B9E] rounded-lg shadow-sm hover:bg-[#304B9E] hover:text-white transition-all active:scale-90 flex items-center gap-1.5 group/btn"
-                   title="View Asset"
-                >
-                   <Eye size={12} strokeWidth={3} className="group-hover/btn:scale-110 transition-transform" />
-                </button>
+              <div className="flex flex-col gap-2 shrink-0">
+                {canDownload && (
+                  <button 
+                     onClick={() => handleDownload(res)}
+                     className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg shadow-sm hover:bg-emerald-600 hover:text-white transition-all active:scale-90 flex items-center justify-center group/dl"
+                     title="Download Asset"
+                  >
+                     <Download size={14} strokeWidth={3} className="group-hover/dl:scale-110 transition-transform" />
+                  </button>
+                )}
+                {canDelete && (
+                  <button 
+                     onClick={() => handleDelete(res.id)}
+                     className="p-2.5 bg-red-50 text-[#ec2027] rounded-lg shadow-sm hover:bg-[#ec2027] hover:text-white transition-all active:scale-90 flex items-center justify-center group/del"
+                     title="Remove Asset"
+                  >
+                     <Trash2 size={14} strokeWidth={3} className="group-hover/del:scale-110 transition-transform" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
+      </div>
+      
+      <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+         <div className="flex items-center gap-2">
+            <ShieldAlert size={12} className="text-slate-300" />
+            <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Management Override Enabled</span>
+         </div>
+         <p className="text-[8px] font-black text-[#304B9E] uppercase tracking-widest">Storage: {filteredResources.length} Assets Registered</p>
       </div>
     </div>
   );
