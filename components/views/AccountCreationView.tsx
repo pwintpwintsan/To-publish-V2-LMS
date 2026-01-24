@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_SCHOOLS } from '../../constants.tsx';
 import { UserRole } from '../../types.ts';
 import { 
@@ -52,6 +52,19 @@ const REGISTERED_NAME_POOL = [
   "Mya Mya", "Hla Hla", "Phyo Phyo", "Ei Ei", "Min Min",
   "Nanda", "Soe Soe", "Wai Wai", "Tun Tun", "Lwin Lwin"
 ];
+
+// Helper to get available IDs based on Role
+const getAvailableIdsForRole = (role: AccountRole): string[] => {
+  switch (role) {
+    case 'Admin':
+      return ['AD1001', 'AD1002'];
+    case 'Teacher':
+      return ['TR10001', 'TR10002', 'TR10003'];
+    case 'Student':
+    default:
+      return Array.from({ length: 100 }, (_, i) => (10001 + i).toString());
+  }
+};
 
 const StudentProfilePopup = ({ user, onClose }: { user: any, onClose: () => void }) => {
   return (
@@ -222,6 +235,15 @@ const EditAccountModal = ({
 }) => {
   const [formData, setFormData] = useState({ ...user });
 
+  const availableIds = useMemo(() => getAvailableIdsForRole(formData.role), [formData.role]);
+
+  // Sync ID if current one becomes invalid for new role
+  useEffect(() => {
+    if (!availableIds.includes(formData.userId)) {
+      setFormData(prev => ({ ...prev, userId: availableIds[0] }));
+    }
+  }, [formData.role, availableIds]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -274,12 +296,18 @@ const EditAccountModal = ({
             </div>
             <div className="space-y-1.5">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">System User ID</label>
-              <input 
-                type="text" 
-                readOnly
-                className="w-full bg-slate-100 border-2 border-slate-100 rounded-xl px-4 py-3 font-mono font-black text-slate-400 text-xs outline-none cursor-default"
-                value={formData.userId}
-              />
+              <div className="relative">
+                <select 
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-mono font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] transition-all appearance-none cursor-pointer"
+                  value={formData.userId}
+                  onChange={(e) => setFormData({...formData, userId: e.target.value})}
+                >
+                  {availableIds.map(id => (
+                    <option key={id} value={id}>{id}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+              </div>
             </div>
           </div>
 
@@ -347,8 +375,17 @@ const CreateAccountModal = ({ onClose, onSave, initialRole }: { onClose: () => v
     branch: MOCK_SCHOOLS[0].name,
     username: '',
     password: generateRandomPassword(),
-    userId: (initialRole === 'Teacher' ? 'TR' : initialRole === 'Student' ? 'ST' : 'AD') + Math.floor(10000 + Math.random() * 90000)
+    userId: ''
   });
+
+  const availableIds = useMemo(() => getAvailableIdsForRole(formData.role), [formData.role]);
+
+  // Ensure userId is valid for selected role
+  useEffect(() => {
+    if (!availableIds.includes(formData.userId)) {
+      setFormData(prev => ({ ...prev, userId: availableIds[0] }));
+    }
+  }, [formData.role, availableIds]);
 
   const handleGeneratePass = () => {
     setFormData(prev => ({ ...prev, password: generateRandomPassword() }));
@@ -406,12 +443,18 @@ const CreateAccountModal = ({ onClose, onSave, initialRole }: { onClose: () => v
             </div>
             <div className="space-y-1.5">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">System User ID</label>
-              <input 
-                type="text" 
-                readOnly
-                className="w-full bg-slate-100 border-2 border-slate-100 rounded-xl px-4 py-3 font-mono font-black text-[#F05A28] text-xs outline-none cursor-default"
-                value={formData.userId}
-              />
+              <div className="relative">
+                <select 
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-mono font-black text-[#F05A28] text-xs outline-none focus:border-[#F05A28] transition-all appearance-none cursor-pointer shadow-inner"
+                  value={formData.userId}
+                  onChange={(e) => setFormData({...formData, userId: e.target.value})}
+                >
+                  {availableIds.map(id => (
+                    <option key={id} value={id}>{id}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+              </div>
             </div>
           </div>
 
@@ -489,16 +532,16 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
   const initialAccounts = useMemo(() => {
     const list = [
        // Admin
-      { userId: 'AD99001', role: 'Admin', branch: 'EDULIGHT School', username: 'ADMIN_MASTER', password: generateRandomPassword(), status: 'Active' },
+      { userId: 'AD1001', role: 'Admin', branch: 'EDULIGHT School', username: 'ADMIN_MASTER', password: generateRandomPassword(), status: 'Active' },
       // Teachers
       { userId: 'TR10001', role: 'Teacher', branch: 'EDULIGHT School', username: '', password: generateRandomPassword(), status: 'Active' },
       { userId: 'TR10002', role: 'Teacher', branch: 'Westside Academy', username: '', password: generateRandomPassword(), status: 'Active' },
     ];
 
-    // Students ST10001 - ST10010
+    // Students 10001 - 10010
     for (let i = 1; i <= 10; i++) {
       list.push({
-        userId: `ST1000${i === 10 ? '10' : i}`,
+        userId: `${10000 + i}`,
         role: 'Student',
         branch: i <= 5 ? 'EDULIGHT School' : 'Westside Academy',
         username: '',
@@ -522,7 +565,7 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
 
   const handleUpdateAccount = (updatedData: any) => {
     setAccounts(prev => prev.map(acc => 
-      acc.userId === updatedData.userId ? updatedData : acc
+      acc.userId === editingUserId ? updatedData : acc
     ));
     setEditingUserId(null);
   };
