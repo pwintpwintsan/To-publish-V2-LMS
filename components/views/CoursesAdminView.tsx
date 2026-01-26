@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MOCK_COURSES, LEVELS } from '../../constants.tsx';
 import { Course, Module, Lesson } from '../../types.ts';
-import { QuizBuilder } from './TestsView.tsx';
+import { QuizBuilder, QuizViewer } from './TestsView.tsx';
 import { 
   BookOpen, 
   ChevronLeft, 
@@ -30,7 +30,13 @@ import {
   X,
   CheckCircle2,
   Plus,
-  Eye
+  Eye,
+  ToggleLeft,
+  ToggleRight,
+  Save,
+  Video,
+  FileQuestion,
+  Sparkles
 } from 'lucide-react';
 
 interface CoursesAdminViewProps {
@@ -39,6 +45,172 @@ interface CoursesAdminViewProps {
   onPreviewCourse?: (id: string) => void;
   checkPermission?: (category: any, action: string) => boolean;
 }
+
+const SwitchToggle = ({ active, onClick }: { active: boolean; onClick: () => void }) => (
+  <button 
+    onClick={(e) => { e.stopPropagation(); onClick(); }}
+    className={`w-10 h-5 rounded-full relative transition-all duration-300 shadow-inner overflow-hidden ${active ? 'bg-[#00a651]' : 'bg-slate-300'}`}
+  >
+    <div 
+      className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${active ? 'translate-x-5' : 'translate-x-0'}`}
+    />
+  </button>
+);
+
+const EditTaskModal = ({ 
+  lesson, 
+  onClose, 
+  onSave 
+}: { 
+  lesson: Lesson, 
+  onClose: () => void, 
+  onSave: (updatedLesson: Lesson) => void 
+}) => {
+  const [formData, setFormData] = useState<Lesson>({ ...lesson });
+
+  const taskTypes: { id: Lesson['type'], label: string, icon: any }[] = [
+    { id: 'video', label: 'Video Lesson', icon: MonitorPlay },
+    { id: 'text', label: 'Text/Reading', icon: FileText },
+    { id: 'quiz', label: 'Interactive Quiz', icon: Zap },
+    { id: 'assignment', label: 'Workshop Task', icon: Edit3 },
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl border-t-[12px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative max-h-[90vh]">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl z-50">
+          <X size={20} strokeWidth={4} />
+        </button>
+
+        <div className="p-8 border-b border-slate-100 bg-slate-50/50 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-[#304B9E] text-white rounded-2xl shadow-xl">
+              <Settings2 size={24} strokeWidth={3} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Task Architect</h2>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Node ID: {formData.id}</p>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Name</label>
+            <input 
+              required
+              type="text"
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3.5 font-black text-[#304B9E] text-sm outline-none focus:border-[#F05A28] transition-all uppercase placeholder:text-slate-200"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Payload Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              {taskTypes.map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: type.id })}
+                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+                    formData.type === type.id 
+                      ? 'bg-indigo-50 border-[#304B9E] shadow-md' 
+                      : 'bg-white border-slate-100 hover:border-slate-200'
+                  }`}
+                >
+                  <type.icon size={18} className={formData.type === type.id ? 'text-[#304B9E]' : 'text-slate-300'} />
+                  <span className={`text-[10px] font-black uppercase tracking-tight ${formData.type === type.id ? 'text-[#304B9E]' : 'text-slate-400'}`}>
+                    {type.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-px bg-slate-100 w-full"></div>
+
+          {/* Contextual Fields */}
+          {formData.type === 'text' && (
+            <div className="space-y-1.5 animate-in slide-in-from-top-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                <FileText size={12} /> Reading Content
+              </label>
+              <textarea 
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-600 text-xs outline-none focus:border-[#304B9E] transition-all min-h-[150px] resize-none"
+                placeholder="Enter lesson narrative here..."
+                value={formData.content || ''}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              />
+            </div>
+          )}
+
+          {formData.type === 'assignment' && (
+            <div className="space-y-1.5 animate-in slide-in-from-top-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                <Edit3 size={12} /> Workshop Instructions
+              </label>
+              <textarea 
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-600 text-xs outline-none focus:border-[#304B9E] transition-all min-h-[120px] resize-none"
+                placeholder="Describe the practical challenge..."
+                value={formData.assignmentInstructions || ''}
+                onChange={(e) => setFormData({ ...formData, assignmentInstructions: e.target.value })}
+              />
+            </div>
+          )}
+
+          {formData.type === 'video' && (
+            <div className="space-y-4 animate-in slide-in-from-top-2">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                  <MonitorPlay size={12} /> Video Source URL
+                </label>
+                <input 
+                  type="text"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3.5 font-bold text-slate-600 text-xs outline-none focus:border-[#304B9E] transition-all"
+                  placeholder="https://youtube.com/embed/..."
+                  value={formData.content || ''}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                />
+              </div>
+              <div className="p-4 bg-blue-50 rounded-2xl border border-indigo-100 flex items-center gap-3">
+                 <Sparkles size={16} className="text-[#304B9E]" />
+                 <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight">Embedded player automatically scales to learner screens.</p>
+              </div>
+            </div>
+          )}
+
+          {formData.type === 'quiz' && (
+            <div className="p-6 bg-orange-50 rounded-[2rem] border-2 border-dashed border-orange-200 text-center animate-in slide-in-from-top-2">
+              <Zap size={32} className="mx-auto text-[#F05A28] mb-3" fill="currentColor" />
+              <h4 className="text-sm font-black text-[#304B9E] uppercase tracking-widest mb-2">Quiz Logic Configured</h4>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight px-4 leading-relaxed">
+                Use the dedicated Exam Control view to manage specific question sets for this node.
+              </p>
+            </div>
+          )}
+        </form>
+
+        <div className="p-8 border-t border-slate-100 bg-white shrink-0 flex gap-4">
+           <button type="button" onClick={onClose} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-all">Cancel</button>
+           <button 
+            type="submit" 
+            onClick={handleSubmit}
+            className="flex-[2] py-4 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#00a651] transition-all border-b-4 border-black/10 active:scale-95 flex items-center justify-center gap-2"
+           >
+              <Save size={18} /> Deploy Changes
+           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const NewCourseModal = ({ onClose, onSave }: { onClose: () => void, onSave: (course: Course) => void }) => {
   const [courseName, setCourseName] = useState('');
@@ -59,7 +231,8 @@ const NewCourseModal = ({ onClose, onSave }: { onClose: () => void, onSave: (cou
       modules: [
         {
           id: 'm1-' + Date.now(),
-          title: 'Introduction & Basics',
+          title: 'Module 1: Introduction & Basics',
+          isPublished: true,
           lessons: [
             { id: 'l1-' + Date.now(), title: 'Welcome to the Course', type: 'video', isPublished: true }
           ]
@@ -135,6 +308,10 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
   const [editingCourseId, setEditingCourseId] = useState<string | null>(initialCourseId || null);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [previewingQuiz, setPreviewingQuiz] = useState<Lesson | null>(null);
+  
+  // State for the new Edit Node functionality
+  const [nodeToEdit, setNodeToEdit] = useState<{ lesson: Lesson, moduleId: string } | null>(null);
 
   const currentCourse = useMemo(() => 
     courses.find(c => c.id === editingCourseId), 
@@ -154,9 +331,79 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
     setIsNewModalOpen(false);
   };
 
+  const toggleModuleAccess = (modId: string) => {
+    if (!editingCourseId) return;
+    const updated = courses.map(c => {
+      if (c.id !== editingCourseId) return c;
+      return {
+        ...c,
+        modules: c.modules.map(m => m.id === modId ? { ...m, isPublished: !m.isPublished } : m)
+      };
+    });
+    setCourses(updated);
+    localStorage.setItem('ubook_courses_v3', JSON.stringify(updated));
+  };
+
+  const toggleLessonAccess = (modId: string, lessonId: string) => {
+    if (!editingCourseId) return;
+    const updated = courses.map(c => {
+      if (c.id !== editingCourseId) return c;
+      return {
+        ...c,
+        modules: c.modules.map(m => {
+          if (m.id !== modId) return m;
+          return {
+            ...m,
+            lessons: m.lessons.map(l => l.id === lessonId ? { ...l, isPublished: !l.isPublished } : l)
+          };
+        })
+      };
+    });
+    setCourses(updated);
+    localStorage.setItem('ubook_courses_v3', JSON.stringify(updated));
+  };
+
+  const handleUpdateTask = (updatedLesson: Lesson) => {
+    if (!editingCourseId || !nodeToEdit) return;
+    
+    const updated = courses.map(c => {
+      if (c.id !== editingCourseId) return c;
+      return {
+        ...c,
+        modules: c.modules.map(m => {
+          if (m.id !== nodeToEdit.moduleId) return m;
+          return {
+            ...m,
+            lessons: m.lessons.map(l => l.id === updatedLesson.id ? updatedLesson : l)
+          };
+        })
+      };
+    });
+    
+    setCourses(updated);
+    localStorage.setItem('ubook_courses_v3', JSON.stringify(updated));
+    setNodeToEdit(null);
+  };
+
   if (editingCourseId && currentCourse) {
      return (
        <div className="h-full flex flex-col gap-6 animate-in slide-in-from-right duration-500 overflow-hidden">
+          {previewingQuiz && (
+            <QuizViewer 
+              title={previewingQuiz.title} 
+              questions={previewingQuiz.quiz || []} 
+              onClose={() => setPreviewingQuiz(null)} 
+            />
+          )}
+
+          {nodeToEdit && (
+            <EditTaskModal 
+              lesson={nodeToEdit.lesson} 
+              onClose={() => setNodeToEdit(null)} 
+              onSave={handleUpdateTask} 
+            />
+          )}
+
           <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#ec2027] flex items-center justify-between shrink-0">
              <div className="flex items-center gap-6">
                 <button onClick={() => { setEditingCourseId(null); if(onExitEdit) onExitEdit(); }} className="p-3 bg-white/10 rounded-xl hover:bg-[#ec2027] transition-all border border-white/10 active:scale-90">
@@ -179,17 +426,86 @@ export const CoursesAdminView: React.FC<CoursesAdminViewProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-hide p-2">
-             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
-                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter mb-4">Course Content</h4>
-                <div className="space-y-4">
+             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-tighter">Syllabus Access Control</h4>
+                  <div className="px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Master Center Privilege</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-12">
                   {currentCourse.modules.map((mod, idx) => (
-                    <div key={mod.id} className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 flex items-center justify-between">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-[#304B9E] text-white flex items-center justify-center font-black">{idx + 1}</div>
-                          <h5 className="font-black text-[#304B9E] uppercase">{mod.title}</h5>
+                    <div key={mod.id} className={`p-8 rounded-[3rem] border-2 transition-all ${mod.isPublished !== false ? 'bg-white border-slate-100 shadow-xl' : 'bg-slate-50 border-slate-200 grayscale-[0.5]'}`}>
+                       <div className="flex items-center justify-between mb-8 border-b border-slate-50 pb-6">
+                          <div className="flex items-center gap-5">
+                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg border-b-4 border-black/10 transition-all ${mod.isPublished !== false ? 'bg-[#304B9E] text-[#F05A28]' : 'bg-slate-300 text-slate-500'}`}>{idx + 1}</div>
+                             <div>
+                                <h5 className={`font-black text-xl uppercase tracking-tighter ${mod.isPublished !== false ? 'text-[#304B9E]' : 'text-slate-400'}`}>{mod.title}</h5>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{mod.isPublished !== false ? 'Status: Active Protocol' : 'Status: Access Revoked'}</p>
+                                  <div className="w-1 h-1 rounded-full bg-slate-200"></div>
+                                  <p className="text-[9px] font-black text-[#F05A28] uppercase tracking-widest">{mod.lessons.length} Tasks Defined</p>
+                                </div>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-inner">
+                             <span className="text-[10px] font-black text-[#304B9E] uppercase tracking-widest">Access Control</span>
+                             <SwitchToggle active={mod.isPublished !== false} onClick={() => toggleModuleAccess(mod.id)} />
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {mod.lessons.map((lesson, lIdx) => (
+                            <div key={lesson.id} className={`group p-5 rounded-2xl border-2 flex flex-col justify-between transition-all ${lesson.isPublished !== false ? 'bg-white border-slate-50 shadow-md hover:border-[#304B9E]/20' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
+                               <div className="flex items-start justify-between mb-4">
+                                  <div className="flex items-center gap-3">
+                                     <div className={`p-2.5 rounded-xl shadow-inner ${lesson.isPublished !== false ? 'bg-indigo-50 text-[#304B9E]' : 'bg-slate-100 text-slate-300'}`}>
+                                        {lesson.type === 'video' ? <MonitorPlay size={18} /> : lesson.type === 'quiz' ? <Zap size={18} /> : lesson.type === 'assignment' ? <Edit3 size={18} /> : <FileText size={18} />}
+                                     </div>
+                                     <div>
+                                        <p className="text-[8px] font-black text-[#F05A28] uppercase tracking-[0.2em] mb-0.5">Task {lIdx + 1}</p>
+                                        <span className={`text-xs font-black uppercase tracking-tight truncate block max-w-[150px] ${lesson.isPublished !== false ? 'text-[#304B9E]' : 'text-slate-400'}`}>{lesson.title}</span>
+                                     </div>
+                                  </div>
+                                  <SwitchToggle active={lesson.isPublished !== false} onClick={() => toggleLessonAccess(mod.id, lesson.id)} />
+                               </div>
+                               
+                               <div className="flex items-center gap-2 mt-auto pt-4 border-t border-slate-50">
+                                  <button 
+                                    onClick={() => setNodeToEdit({ lesson, moduleId: mod.id })}
+                                    className="flex-1 py-2 bg-slate-50 hover:bg-[#304B9E] hover:text-white text-slate-400 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-sm"
+                                  >
+                                     Edit Node
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      if (lesson.type === 'quiz') setPreviewingQuiz(lesson);
+                                      else setNodeToEdit({ lesson, moduleId: mod.id });
+                                    }}
+                                    className="p-2 bg-slate-50 hover:bg-[#F05A28] hover:text-white text-slate-300 rounded-lg shadow-sm transition-all"
+                                  >
+                                     <Eye size={14} />
+                                  </button>
+                               </div>
+                            </div>
+                          ))}
+                          <button className="p-6 border-4 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-300 hover:text-[#304B9E] hover:border-[#304B9E]/40 hover:bg-slate-50 transition-all group min-h-[140px]">
+                             <PlusCircle size={28} className="group-hover:rotate-90 transition-transform" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Register Task {mod.lessons.length + 1}</span>
+                          </button>
                        </div>
                     </div>
                   ))}
+                  <button className="w-full py-10 border-4 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center justify-center gap-4 text-slate-300 hover:bg-indigo-50/30 hover:text-[#304B9E] hover:border-[#304B9E]/20 transition-all group">
+                      <div className="p-4 bg-white rounded-3xl shadow-xl group-hover:scale-110 transition-transform">
+                        <PlusCircle size={48} strokeWidth={2.5} className="text-[#F05A28]" />
+                      </div>
+                      <div className="text-center">
+                        <span className="text-lg font-black uppercase tracking-[0.3em]">Initialize Global Module {currentCourse.modules.length + 1}</span>
+                        <p className="text-[9px] font-bold uppercase tracking-widest mt-1 opacity-60">Expand curriculum framework</p>
+                      </div>
+                  </button>
                 </div>
              </div>
           </div>

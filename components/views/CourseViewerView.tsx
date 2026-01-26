@@ -120,7 +120,7 @@ export const CourseViewerView: React.FC<CourseViewerViewProps> = ({ courseId, on
                     <h4 className="font-black text-[#292667] text-[8px] uppercase tracking-tight truncate leading-none">{mod.title}</h4>
                   </div>
                   <div className="ml-3 pl-3 border-l border-dashed border-slate-100 space-y-1.5 pb-2">
-                    {mod.lessons.map((lesson) => (
+                    {mod.lessons.map((lesson, lessonIdx) => (
                       <div 
                         key={lesson.id}
                         onClick={() => { setActiveLesson(lesson); setIsSubmitted(false); setQuizSelection(null); }}
@@ -130,7 +130,7 @@ export const CourseViewerView: React.FC<CourseViewerViewProps> = ({ courseId, on
                           {getLessonIcon(lesson.type, 10)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={`font-black text-[8px] uppercase tracking-tight truncate ${activeLesson?.id === lesson.id ? 'text-white' : 'text-[#292667]'}`}>{lesson.title}</p>
+                          <p className={`font-black text-[8px] uppercase tracking-tight truncate ${activeLesson?.id === lesson.id ? 'text-white' : 'text-[#292667]'}`}>Task {lessonIdx + 1}: {lesson.title}</p>
                           <p className={`text-[6px] font-bold uppercase tracking-widest mt-0.5 ${activeLesson?.id === lesson.id ? 'text-[#ec2027]' : 'text-slate-300'}`}>{lesson.type}</p>
                         </div>
                       </div>

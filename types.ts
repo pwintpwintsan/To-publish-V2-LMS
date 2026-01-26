@@ -1,4 +1,5 @@
 
+
 export enum UserRole {
   MAIN_CENTER = 'main-center',
   SUPER_ADMIN = 'super-admin',
@@ -55,6 +56,7 @@ export interface Module {
   id: string;
   title: string;
   lessons: Lesson[];
+  isPublished?: boolean;
 }
 
 export interface Course {
@@ -86,6 +88,7 @@ export interface School {
   approvedCourseIds: string[];
   description?: string;
   establishedDate?: string;
+  // Fix: changed facilities from a restrictive tuple type to a string array to allow varying facilities per school
   facilities?: string[];
   contactPerson?: string;
   contactPhone?: string;

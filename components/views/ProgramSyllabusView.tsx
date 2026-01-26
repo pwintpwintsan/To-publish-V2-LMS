@@ -26,7 +26,8 @@ import {
   Settings,
   Check,
   Video,
-  Play
+  Play,
+  EyeOff
 } from 'lucide-react';
 
 interface ProgramSyllabusViewProps {
@@ -219,8 +220,12 @@ const HelpCircleIcon = ({ size, className }: { size: number, className?: string 
 );
 
 export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ courseId, onBack, onEnroll, onEdit, activeRole }) => {
-  const initialCourse = MOCK_COURSES.find(c => c.id === courseId) || MOCK_COURSES[0];
-  const [course, setCourse] = useState<Course>(initialCourse);
+  const [courses] = useState<Course[]>(() => {
+    const saved = localStorage.getItem('ubook_courses_v3');
+    return saved ? JSON.parse(saved) : MOCK_COURSES;
+  });
+
+  const course = courses.find(c => c.id === courseId) || courses[0];
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(course.name);
   const [editedDescription, setEditedDescription] = useState(course.description || '');
@@ -232,7 +237,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
   const canEnroll = activeRole !== UserRole.TEACHER && activeRole !== UserRole.SUPER_ADMIN && activeRole !== UserRole.MAIN_CENTER;
 
   const handleSave = () => {
-    setCourse({ ...course, name: editedName, description: editedDescription });
+    // Logic for saving local state if necessary
     setIsEditing(false);
   };
 
@@ -250,7 +255,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
     <div className="h-full flex flex-col gap-4 overflow-y-auto scrollbar-hide animate-in fade-in duration-500 pb-12">
       {selectedLesson && <TaskDetailModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />}
 
-      {/* HEADER LOGIC: Conditional Banner vs Compact Admin Header */}
+      {/* HEADER */}
       {!isMainAdmin ? (
         <div className="w-full relative group shrink-0">
           <div className="absolute top-4 left-4 z-30 flex gap-2">
@@ -272,7 +277,6 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
           </div>
         </div>
       ) : (
-        /* COMPACT HEADER FOR MAIN CENTER ADMIN */
         <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between shrink-0 mb-2">
           <div className="flex items-center gap-4">
             <button 
@@ -283,31 +287,24 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
             </button>
             <div>
               <h2 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">Course Syllabus</h2>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Management View</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Status Overview</p>
             </div>
           </div>
 
           <div className="flex gap-2">
-             <button 
-                  onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg transition-all border-b-4 border-black/10 active:scale-95 ${isEditing ? 'bg-[#00a651] text-white hover:bg-[#304B9E]' : 'bg-[#F05A28] text-white hover:bg-orange-700'}`}
-              >
-                  {isEditing ? <><Save size={14} /> Finish</> : <><Edit3 size={14} /> Rename</>}
-              </button>
-              
               {onEdit && (
                 <button 
                   onClick={onEdit}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#304B9E] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 active:scale-95 hover:bg-blue-600"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#F05A28] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 active:scale-95 hover:bg-orange-600"
                 >
-                  <Settings size={14} /> Course Architect
+                  <Settings size={14} /> Access Architect
                 </button>
               )}
           </div>
         </div>
       )}
 
-      {/* TEXTS SECTION */}
+      {/* INFO SECTION */}
       <div className="max-w-[1000px] mx-auto w-full px-2">
         <div className={`bg-white rounded-[1.5rem] p-5 md:p-6 shadow-md border border-slate-100 relative overflow-hidden z-20 ${!isMainAdmin ? '-mt-10' : 'mt-0'}`}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
@@ -324,37 +321,12 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                   </span>
                 </div>
 
-                {isEditing ? (
-                  <div className="space-y-2 animate-in slide-in-from-top-1">
-                     <div className="space-y-1">
-                        <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Rename Course</label>
-                        <input 
-                          type="text" 
-                          className="w-full bg-slate-50 border-2 border-indigo-50 rounded-lg px-3 py-1.5 text-lg font-black text-[#304B9E] uppercase outline-none focus:border-[#3b82f6] transition-all"
-                          value={editedName}
-                          onChange={(e) => setEditedName(e.target.value)}
-                        />
-                     </div>
-                     <div className="space-y-1">
-                        <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
-                        <textarea 
-                          className="w-full bg-slate-50 border-2 border-indigo-50 rounded-lg px-3 py-1.5 text-[10px] font-bold text-slate-600 uppercase outline-none focus:border-[#3b82f6] transition-all resize-none"
-                          rows={2}
-                          value={editedDescription}
-                          onChange={(e) => setEditedDescription(e.target.value)}
-                        />
-                     </div>
-                  </div>
-                ) : (
-                  <>
-                    <h1 className="text-xl md:text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none text-balance">
-                      {course.name}
-                    </h1>
-                    <p className="text-xs text-slate-500 font-bold leading-relaxed uppercase tracking-tight max-w-xl">
-                      {course.description || "Official U Book Store course module designed for the next generation of digital pioneers."}
-                    </p>
-                  </>
-                )}
+                <h1 className="text-xl md:text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none text-balance">
+                  {course.name}
+                </h1>
+                <p className="text-xs text-slate-500 font-bold leading-relaxed uppercase tracking-tight max-w-xl">
+                  {course.description || "Official U Book Store course module."}
+                </p>
               </div>
 
               {canEnroll && onEnroll && (
@@ -377,10 +349,6 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                   <Target size={14} className="text-[#00a651]" />
                   <span className="text-[9px] font-black text-[#304B9E] uppercase">{totalTasks} Quests</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck size={14} className="text-[#3b82f6]" />
-                  <span className="text-[9px] font-black text-[#304B9E] uppercase">Global Badge</span>
-                </div>
             </div>
           </div>
         </div>
@@ -394,106 +362,114 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                 <div className="p-1.5 bg-orange-50 text-[#F05A28] rounded-lg">
                     <Target size={16} strokeWidth={3} />
                 </div>
-                <h3 className="text-xs font-black text-[#304B9E] uppercase tracking-widest">Course Roadmap</h3>
-              </div>
-              <div className="px-2 py-0.5 bg-white rounded border border-slate-100">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{course.modules.length} Modules</span>
+                <h3 className="text-xs font-black text-[#304B9E] uppercase tracking-widest">Access Roadmap</h3>
               </div>
           </div>
           
           <div className="p-5 md:p-6 space-y-8">
-              {course.modules.map((mod, mIdx) => (
-                <div key={mod.id} className="relative">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#304B9E] text-[#F05A28] flex items-center justify-center font-black text-sm shadow border-b-2 border-black/10">
-                            {mIdx + 1}
-                        </div>
-                        <div>
-                          <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">{mod.title}</h4>
-                          <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{mod.lessons.length} Core Activities</p>
-                        </div>
-                      </div>
-                      {isMainAdmin && onEdit && (
-                        <button 
-                          onClick={onEdit}
-                          className="p-2 bg-slate-50 text-slate-300 hover:text-[#3b82f6] rounded-lg transition-all"
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                      )}
-                    </div>
+              {course.modules.map((mod, mIdx) => {
+                const isModVisible = mod.isPublished !== false;
+                
+                // If student/teacher and mod is off, hide entirely
+                if (!isModVisible && !isMainAdmin) return null;
 
-                    <div className="ml-4 pl-6 border-l border-dashed border-slate-100 space-y-2">
-                      {mod.lessons.map(lesson => (
-                          <div 
-                            key={lesson.id} 
-                            onClick={() => setSelectedLesson(lesson)}
-                            className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100 hover:border-[#3b82f6]/40 hover:shadow transition-all group cursor-pointer"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-7 h-7 rounded-lg bg-slate-50 shadow-inner flex items-center justify-center group-hover:scale-105 group-hover:bg-[#304B9E] group-hover:text-white transition-all text-slate-400">
-                                  {getTaskIcon(lesson.type)}
-                                </div>
-                                <div>
-                                  <span className="text-xs font-black text-[#304B9E] uppercase tracking-tight truncate block group-hover:text-[#3b82f6] transition-colors">{lesson.title}</span>
-                                  <span className="text-[6px] font-black text-slate-300 uppercase tracking-widest">{lesson.type}</span>
-                                </div>
-                            </div>
+                return (
+                  <div key={mod.id} className={`relative ${!isModVisible ? 'opacity-50 grayscale' : ''}`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm shadow border-b-2 border-black/10 transition-all ${isModVisible ? 'bg-[#304B9E] text-[#F05A28]' : 'bg-slate-300 text-slate-500'}`}>
+                              {mIdx + 1}
+                          </div>
+                          <div>
                             <div className="flex items-center gap-2">
-                                {isMainAdmin && onEdit && (
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                                    className="p-1.5 opacity-0 group-hover:opacity-100 bg-blue-50 text-[#3b82f6] rounded-md transition-all hover:bg-blue-600 hover:text-white"
-                                  >
-                                    <Edit3 size={10} />
-                                  </button>
-                                )}
-                                <ChevronRight size={14} className="text-slate-200 group-hover:text-[#304B9E] group-hover:translate-x-1 transition-all" strokeWidth={3} />
+                               <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">{mod.title}</h4>
+                               {!isModVisible && isMainAdmin && (
+                                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-50 text-[#ec2027] rounded text-[6px] font-black uppercase tracking-widest border border-red-100">
+                                     <EyeOff size={8} /> Hidden
+                                  </span>
+                               )}
                             </div>
+                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{mod.lessons.length} Core Activities</p>
                           </div>
-                      ))}
-
-                      {/* Module Assessment Item - Compacted */}
-                      <div 
-                        onClick={() => setSelectedLesson({ id: `exam-${mod.id}`, title: `${mod.title} Assessment`, type: 'quiz', quiz: mod.lessons.find(l => l.type === 'quiz')?.quiz })}
-                        className="flex items-center justify-between p-3 rounded-xl bg-red-50/20 border border-dashed border-[#F05A28]/20 hover:border-[#F05A28] hover:bg-white transition-all group cursor-pointer mt-4 relative overflow-hidden"
-                      >
-                          <div className="flex items-center gap-3 min-w-0 relative z-10">
-                            <div className="w-8 h-8 rounded-lg bg-white shadow flex items-center justify-center text-[#F05A28] group-hover:rotate-6 transition-all border-b border-black/5">
-                                <FileCheck size={16} strokeWidth={3} />
-                            </div>
-                            <div>
-                                <span className="text-xs font-black text-[#F05A28] uppercase tracking-tighter leading-none block">Performance Check</span>
-                                <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Automated Assessment</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 relative z-10">
-                            {isMainAdmin && onEdit && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                                className="p-1.5 opacity-0 group-hover:opacity-100 bg-red-100 text-[#F05A28] rounded-md transition-all hover:bg-[#F05A28] hover:text-white"
-                              >
-                                <Edit3 size={10} />
-                              </button>
-                            )}
-                            <div className="hidden sm:block px-1.5 py-0.5 bg-[#F05A28] text-white text-[6px] font-black uppercase rounded shadow-md tracking-widest">
-                                FINAL
-                            </div>
-                            <ArrowRight size={16} className="text-[#F05A28] group-hover:translate-x-2 transition-transform" strokeWidth={3} />
-                          </div>
+                        </div>
                       </div>
-                    </div>
-                </div>
-              ))}
+
+                      <div className="ml-4 pl-6 border-l border-dashed border-slate-100 space-y-2">
+                        {mod.lessons.map((lesson, lIdx) => {
+                            const isTaskVisible = lesson.isPublished !== false;
+                            
+                            // If student/teacher and task is off, hide entirely
+                            if (!isTaskVisible && !isMainAdmin) return null;
+
+                            return (
+                                <div 
+                                  key={lesson.id} 
+                                  onClick={() => isTaskVisible || isMainAdmin ? setSelectedLesson(lesson) : null}
+                                  className={`flex items-center justify-between p-2 rounded-xl border transition-all group ${
+                                    isTaskVisible 
+                                      ? 'bg-white border-slate-100 hover:border-[#3b82f6]/40 hover:shadow cursor-pointer' 
+                                      : 'bg-slate-50 border-slate-100 opacity-60'
+                                  } ${!isTaskVisible && isMainAdmin ? 'cursor-pointer' : ''}`}
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                      <div className={`w-7 h-7 rounded-lg shadow-inner flex items-center justify-center transition-all ${
+                                        isTaskVisible 
+                                          ? 'bg-slate-50 text-slate-400 group-hover:bg-[#304B9E] group-hover:text-white' 
+                                          : 'bg-slate-200 text-slate-400'
+                                      }`}>
+                                        {getTaskIcon(lesson.type)}
+                                      </div>
+                                      <div>
+                                        <div className="flex items-center gap-2">
+                                           <span className={`text-xs font-black uppercase tracking-tight truncate block transition-colors ${
+                                              isTaskVisible ? 'text-[#304B9E] group-hover:text-[#3b82f6]' : 'text-slate-400'
+                                           }`}>
+                                              Task {lIdx + 1}: {lesson.title}
+                                           </span>
+                                           {!isTaskVisible && isMainAdmin && <EyeOff size={10} className="text-slate-300" />}
+                                        </div>
+                                        <span className="text-[6px] font-black text-slate-300 uppercase tracking-widest">{lesson.type}</span>
+                                      </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                      <ChevronRight size={14} className={`transition-all ${isTaskVisible ? 'text-slate-200 group-hover:text-[#304B9E] group-hover:translate-x-1' : 'text-slate-100'}`} strokeWidth={3} />
+                                  </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Module Assessment Item */}
+                        <div 
+                          onClick={() => setSelectedLesson({ id: `exam-${mod.id}`, title: `${mod.title} Assessment`, type: 'quiz', quiz: mod.lessons.find(l => l.type === 'quiz')?.quiz })}
+                          className="flex items-center justify-between p-3 rounded-xl bg-red-50/20 border border-dashed border-[#F05A28]/20 hover:border-[#F05A28] hover:bg-white transition-all group cursor-pointer mt-4 relative overflow-hidden"
+                        >
+                            <div className="flex items-center gap-3 min-w-0 relative z-10">
+                              <div className="w-8 h-8 rounded-lg bg-white shadow flex items-center justify-center text-[#F05A28] group-hover:rotate-6 transition-all border-b border-black/5">
+                                  <FileCheck size={16} strokeWidth={3} />
+                              </div>
+                              <div>
+                                  <span className="text-xs font-black text-[#F05A28] uppercase tracking-tighter leading-none block">Performance Check</span>
+                                  <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Automated Assessment</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 relative z-10">
+                              <div className="hidden sm:block px-1.5 py-0.5 bg-[#F05A28] text-white text-[6px] font-black uppercase rounded shadow-md tracking-widest">
+                                  FINAL
+                              </div>
+                              <ArrowRight size={16} className="text-[#F05A28] group-hover:translate-x-2 transition-transform" strokeWidth={3} />
+                            </div>
+                        </div>
+                      </div>
+                  </div>
+                );
+              })}
           </div>
 
           <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Star size={12} className="text-[#F05A28] fill-current" />
-                <span className="text-[7px] font-black text-[#304B9E] uppercase tracking-widest">Rewards Enabled</span>
+                <span className="text-[7px] font-black text-[#304B9E] uppercase tracking-widest">Registry Sync Complete</span>
               </div>
-              <p className="text-[7px] font-black text-slate-300 uppercase tracking-widest">Course Rev: 4.0.1</p>
           </div>
         </div>
       </div>
