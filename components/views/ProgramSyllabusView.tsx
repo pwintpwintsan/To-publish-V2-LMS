@@ -27,7 +27,8 @@ import {
   Check,
   Video,
   Play,
-  EyeOff
+  EyeOff,
+  Settings2
 } from 'lucide-react';
 
 interface ProgramSyllabusViewProps {
@@ -234,7 +235,8 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
-  const canEnroll = activeRole !== UserRole.TEACHER && activeRole !== UserRole.SUPER_ADMIN && activeRole !== UserRole.MAIN_CENTER;
+  const isStaff = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.TEACHER;
+  const canEnroll = activeRole === UserRole.STUDENT || activeRole === UserRole.EDITOR;
 
   const handleSave = () => {
     // Logic for saving local state if necessary
@@ -256,7 +258,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
       {selectedLesson && <TaskDetailModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />}
 
       {/* HEADER */}
-      {!isMainAdmin ? (
+      {!isStaff ? (
         <div className="w-full relative group shrink-0">
           <div className="absolute top-4 left-4 z-30 flex gap-2">
             <button 
@@ -297,7 +299,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                   onClick={onEdit}
                   className="flex items-center gap-2 px-4 py-2 bg-[#F05A28] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 active:scale-95 hover:bg-orange-600"
                 >
-                  <Settings size={14} /> Access Architect
+                  <Settings2 size={14} /> {isMainAdmin ? 'Access Architect' : 'Manage Access'}
                 </button>
               )}
           </div>
@@ -306,7 +308,7 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
 
       {/* INFO SECTION */}
       <div className="max-w-[1000px] mx-auto w-full px-2">
-        <div className={`bg-white rounded-[1.5rem] p-5 md:p-6 shadow-md border border-slate-100 relative overflow-hidden z-20 ${!isMainAdmin ? '-mt-10' : 'mt-0'}`}>
+        <div className={`bg-white rounded-[1.5rem] p-5 md:p-6 shadow-md border border-slate-100 relative overflow-hidden z-20 ${!isStaff ? '-mt-10' : 'mt-0'}`}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
           
           <div className="relative z-10 space-y-3">
@@ -370,8 +372,8 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
               {course.modules.map((mod, mIdx) => {
                 const isModVisible = mod.isPublished !== false;
                 
-                // If student/teacher and mod is off, hide entirely
-                if (!isModVisible && !isMainAdmin) return null;
+                // If student and mod is off, hide entirely
+                if (!isModVisible && !isStaff) return null;
 
                 return (
                   <div key={mod.id} className={`relative ${!isModVisible ? 'opacity-50 grayscale' : ''}`}>
@@ -383,9 +385,9 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                           <div>
                             <div className="flex items-center gap-2">
                                <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">{mod.title}</h4>
-                               {!isModVisible && isMainAdmin && (
+                               {!isModVisible && isStaff && (
                                   <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-50 text-[#ec2027] rounded text-[6px] font-black uppercase tracking-widest border border-red-100">
-                                     <EyeOff size={8} /> Hidden
+                                     <EyeOff size={8} /> Hidden from Students
                                   </span>
                                )}
                             </div>
@@ -398,18 +400,18 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                         {mod.lessons.map((lesson, lIdx) => {
                             const isTaskVisible = lesson.isPublished !== false;
                             
-                            // If student/teacher and task is off, hide entirely
-                            if (!isTaskVisible && !isMainAdmin) return null;
+                            // If student and task is off, hide entirely
+                            if (!isTaskVisible && !isStaff) return null;
 
                             return (
                                 <div 
                                   key={lesson.id} 
-                                  onClick={() => isTaskVisible || isMainAdmin ? setSelectedLesson(lesson) : null}
+                                  onClick={() => isTaskVisible || isStaff ? setSelectedLesson(lesson) : null}
                                   className={`flex items-center justify-between p-2 rounded-xl border transition-all group ${
                                     isTaskVisible 
                                       ? 'bg-white border-slate-100 hover:border-[#3b82f6]/40 hover:shadow cursor-pointer' 
                                       : 'bg-slate-50 border-slate-100 opacity-60'
-                                  } ${!isTaskVisible && isMainAdmin ? 'cursor-pointer' : ''}`}
+                                  } ${!isTaskVisible && isStaff ? 'cursor-pointer' : ''}`}
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
                                       <div className={`w-7 h-7 rounded-lg shadow-inner flex items-center justify-center transition-all ${
@@ -426,12 +428,15 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
                                            }`}>
                                               Task {lIdx + 1}: {lesson.title}
                                            </span>
-                                           {!isTaskVisible && isMainAdmin && <EyeOff size={10} className="text-slate-300" />}
+                                           {!isTaskVisible && isStaff && <EyeOff size={10} className="text-slate-300" />}
                                         </div>
                                         <span className="text-[6px] font-black text-slate-300 uppercase tracking-widest">{lesson.type}</span>
                                       </div>
                                   </div>
                                   <div className="flex items-center gap-2">
+                                      {!isTaskVisible && isStaff && (
+                                        <span className="text-[6px] font-black uppercase tracking-widest text-[#ec2027] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">OFF</span>
+                                      )}
                                       <ChevronRight size={14} className={`transition-all ${isTaskVisible ? 'text-slate-200 group-hover:text-[#304B9E] group-hover:translate-x-1' : 'text-slate-100'}`} strokeWidth={3} />
                                   </div>
                                 </div>

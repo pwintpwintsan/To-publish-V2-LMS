@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Library,
   ArrowRight,
-  Edit3
+  Edit3,
+  Settings2
 } from 'lucide-react';
 import { MOCK_COURSES } from '../../constants.tsx';
 
@@ -74,6 +75,7 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
   const [unlockCourse, setUnlockCourse] = useState<string | null>(null);
   
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
+  const isStaff = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.TEACHER;
   const isAdmin = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN;
 
   const filteredCourses = useMemo(() => {
@@ -198,12 +200,12 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
                         View Course Syllabus <ArrowRight size={16} strokeWidth={4} className="group-hover/btn:translate-x-1 transition-transform" />
                       </button>
                       
-                      {isMainAdmin && onEditCourse && (
+                      {isStaff && onEditCourse && (
                         <button 
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-[#3b82f6] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#3b82f6] hover:text-white transition-all border border-blue-100 active:scale-95"
+                          className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-[#304B9E] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all border border-indigo-100 active:scale-95"
                           onClick={(e) => { e.stopPropagation(); onEditCourse(course.id); }}
                         >
-                          <Edit3 size={14} /> Edit Syllabus
+                          <Settings2 size={14} /> {isMainAdmin ? 'Edit Syllabus' : 'Manage Access'}
                         </button>
                       )}
                    </div>

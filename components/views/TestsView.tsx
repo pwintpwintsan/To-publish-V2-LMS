@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { MOCK_COURSES, MOCK_CLASSES } from '../../constants.tsx';
 import { Course, Module, Lesson, QuizQuestion } from '../../types.ts';
@@ -123,12 +122,14 @@ export const QuizBuilder = ({
   initialQuestions, 
   onBack, 
   onSave, 
-  title 
+  title,
+  compact = false
 }: { 
   initialQuestions: QuizQuestion[], 
   onBack: () => void, 
   onSave: (questions: QuizQuestion[]) => void,
-  title: string
+  title: string,
+  compact?: boolean
 }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>(
     initialQuestions.length > 0 ? [...initialQuestions] : [{
@@ -139,7 +140,7 @@ export const QuizBuilder = ({
     }]
   );
   const [activeIdx, setActiveIdx] = useState<number>(0);
-  const MAX_QUESTIONS = 10;
+  const MAX_QUESTIONS = 15;
 
   const handleAddQuestion = () => {
     if (questions.length >= MAX_QUESTIONS) return;
@@ -151,47 +152,27 @@ export const QuizBuilder = ({
     const newQs = [...questions];
     newQs[activeIdx] = { ...newQs[activeIdx], ...data };
     setQuestions(newQs);
+    if (compact) onSave(newQs);
   };
 
   const removeQuestion = (idx: number) => {
     if (questions.length <= 1) return;
-    setQuestions(questions.filter((_, i) => i !== idx));
+    const nextQs = questions.filter((_, i) => i !== idx);
+    setQuestions(nextQs);
     setActiveIdx(Math.max(0, activeIdx - 1));
+    if (compact) onSave(nextQs);
   };
 
   const activeQ = questions[activeIdx];
   const isReady = questions.every(q => q.question.trim() !== '' && q.options.every(opt => opt.trim() !== ''));
 
-  return (
-    <div className="h-full flex flex-col gap-6 animate-in slide-in-from-right duration-300 overflow-hidden">
-      <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#00a651] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-6">
-           <button onClick={onBack} className="p-3 bg-white/10 rounded-xl hover:bg-[#ec2027] transition-all border border-white/10 active:scale-90">
-             <ChevronLeft size={24} strokeWidth={4} />
-           </button>
-           <div>
-             <h2 className="text-xl font-black uppercase tracking-tight leading-none">Exam <span className="text-[#F05A28]">Builder</span></h2>
-             <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1 truncate max-w-[250px]">{title}</p>
-           </div>
-        </div>
-
-        <button 
-          onClick={() => onSave(questions)}
-          disabled={!isReady}
-          className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl transition-all border-b-4 border-black/20 flex items-center gap-3 ${
-            isReady ? 'bg-[#00a651] text-white hover:scale-105 active:scale-95' : 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
-          }`}
-        >
-          <Save size={18} strokeWidth={3} /> Save Exam
-        </button>
-      </div>
-
-      <div className="flex-1 grid grid-cols-12 gap-6 overflow-hidden pb-4">
-        {/* Left Nav */}
-        <div className="col-span-12 lg:col-span-4 bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-xl overflow-hidden flex flex-col">
-          <div className="p-6 pb-4 flex justify-between items-center shrink-0 border-b-4 border-slate-50">
+  const builderContent = (
+    <div className={`flex-1 grid ${compact ? 'grid-cols-1' : 'grid-cols-12'} gap-6 overflow-hidden pb-4`}>
+        {/* Nav List */}
+        <div className={`${compact ? 'w-full' : 'col-span-12 lg:col-span-4'} bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-xl overflow-hidden flex flex-col`}>
+          <div className="p-6 pb-4 flex justify-between items-center shrink-0 border-b-4 border-slate-50 bg-slate-50/30">
              <h3 className="text-[10px] font-black text-[#304B9E] uppercase tracking-widest flex items-center gap-2">
-               <ListOrdered size={16} className="text-[#00a651]" /> Questions Log
+               <ListOrdered size={16} className="text-[#00a651]" /> Question Hub
              </h3>
              <button onClick={handleAddQuestion} disabled={questions.length >= MAX_QUESTIONS} className={`p-2 rounded-xl transition-all shadow-md ${questions.length < MAX_QUESTIONS ? 'bg-[#00a651] text-white hover:scale-110 active:scale-90' : 'bg-slate-200 text-slate-400'}`}>
                <Plus size={20} strokeWidth={4} />
@@ -200,36 +181,36 @@ export const QuizBuilder = ({
 
           <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2 p-6 bg-slate-50/50">
              {questions.map((q, i) => (
-               <div key={q.id} onClick={() => setActiveIdx(i)} className={`p-5 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer group ${activeIdx === i ? 'bg-white border-[#00a651] shadow-lg scale-[1.02]' : 'bg-white/50 border-transparent hover:border-slate-200 hover:bg-white'}`}>
+               <div key={q.id} onClick={() => setActiveIdx(i)} className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer group ${activeIdx === i ? 'bg-white border-[#00a651] shadow-lg scale-[1.02]' : 'bg-white/50 border-transparent hover:border-slate-200 hover:bg-white'}`}>
                  <div className="flex items-center gap-4 min-w-0">
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shadow-md transition-all ${activeIdx === i ? 'bg-[#00a651] text-white' : 'bg-slate-100 text-slate-400'}`}>{i + 1}</span>
-                    <span className={`text-[12px] font-black uppercase tracking-tight truncate ${activeIdx === i ? 'text-[#304B9E]' : 'text-slate-400'}`}>{q.question || 'New Question...'}</span>
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-[10px] shadow-md transition-all ${activeIdx === i ? 'bg-[#00a651] text-white' : 'bg-slate-100 text-slate-400'}`}>{i + 1}</span>
+                    <span className={`text-[11px] font-black uppercase tracking-tight truncate ${activeIdx === i ? 'text-[#304B9E]' : 'text-slate-400'}`}>{q.question || 'New Query...'}</span>
                  </div>
                  {questions.length > 1 && <button onClick={(e) => { e.stopPropagation(); removeQuestion(i); }} className="p-2 text-slate-200 hover:text-[#ec2027] opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>}
                </div>
              ))}
              {questions.length < MAX_QUESTIONS && (
-               <button onClick={handleAddQuestion} className="w-full p-5 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-3 text-slate-300 font-black text-[10px] uppercase tracking-widest hover:border-[#00a651] hover:text-[#00a651] transition-all group">
-                  <PlusCircle size={20} className="group-hover:rotate-90 transition-transform" /> Add Task {questions.length + 1}
+               <button onClick={handleAddQuestion} className="w-full p-4 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-3 text-slate-300 font-black text-[10px] uppercase tracking-widest hover:border-[#00a651] hover:text-[#00a651] transition-all group">
+                  <PlusCircle size={18} className="group-hover:rotate-90 transition-transform" /> Add Quest {questions.length + 1}
                </button>
              )}
           </div>
         </div>
 
-        {/* Editor Area */}
-        <div className="col-span-12 lg:col-span-8 overflow-hidden h-full">
+        {/* Workspace */}
+        <div className={`${compact ? 'w-full mt-4' : 'col-span-12 lg:col-span-8'} overflow-hidden h-full`}>
            {activeQ ? (
-             <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl border-2 border-slate-100 h-full flex flex-col relative overflow-hidden">
+             <div className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-2xl border-2 border-slate-100 h-full flex flex-col relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#F05A28]/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
                 
-                <div className="flex-1 overflow-y-auto scrollbar-hide space-y-8 relative z-10">
+                <div className="flex-1 overflow-y-auto scrollbar-hide space-y-6 relative z-10">
                    <div className="space-y-3">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                        <Type size={14} className="text-[#ec2027]" /> Assessment Context
+                        <Type size={14} className="text-[#ec2027]" /> Query Definition
                       </label>
                       <textarea 
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-6 font-black text-[#304B9E] text-lg outline-none focus:border-[#00a651] shadow-inner transition-all resize-none" 
-                        placeholder="Enter the challenge or question content here..." 
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 font-black text-[#304B9E] text-base outline-none focus:border-[#00a651] shadow-inner transition-all resize-none" 
+                        placeholder="Enter the challenge or question content..." 
                         rows={3}
                         value={activeQ.question} 
                         onChange={(e) => updateQuestion({ question: e.target.value })} 
@@ -253,16 +234,16 @@ export const QuizBuilder = ({
                       
                       <div className="grid grid-cols-1 gap-3">
                         {activeQ.options.map((opt, oIdx) => (
-                          <div key={oIdx} className={`group flex items-center gap-4 p-3 rounded-[1.5rem] border-2 transition-all duration-300 ${activeQ.correctAnswer === oIdx ? 'bg-green-50 border-[#00a651] shadow-md' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+                          <div key={oIdx} className={`group flex items-center gap-3 p-3 rounded-2xl border-2 transition-all duration-300 ${activeQ.correctAnswer === oIdx ? 'bg-green-50 border-[#00a651] shadow-md' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
                              <button 
                                onClick={() => updateQuestion({ correctAnswer: oIdx })} 
-                               className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all flex-shrink-0 shadow-lg ${activeQ.correctAnswer === oIdx ? 'bg-[#00a651] text-white scale-110 rotate-3' : 'bg-slate-50 text-slate-300 hover:bg-slate-100'}`}
+                               className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all flex-shrink-0 shadow-lg ${activeQ.correctAnswer === oIdx ? 'bg-[#00a651] text-white scale-110 rotate-3' : 'bg-slate-50 text-slate-300 hover:bg-slate-100'}`}
                              >
-                               {activeQ.correctAnswer === oIdx ? <Check size={24} strokeWidth={4} /> : String.fromCharCode(65 + oIdx)}
+                               {activeQ.correctAnswer === oIdx ? <Check size={20} strokeWidth={4} /> : String.fromCharCode(65 + oIdx)}
                              </button>
                              <div className="flex-1 flex items-center gap-2">
                                 <input 
-                                  className="flex-1 bg-transparent font-black text-[#304B9E] text-sm outline-none px-2 uppercase placeholder:text-slate-200" 
+                                  className="flex-1 bg-transparent font-black text-[#304B9E] text-xs outline-none px-2 uppercase placeholder:text-slate-200" 
                                   placeholder={`Define Option ${String.fromCharCode(65 + oIdx)}...`} 
                                   value={opt} 
                                   onChange={(e) => { 
@@ -292,11 +273,11 @@ export const QuizBuilder = ({
                    </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t-2 border-slate-50 relative z-10 flex justify-end gap-4">
+                <div className="mt-6 pt-6 border-t-2 border-slate-50 relative z-10 flex justify-end gap-4">
                     <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
                        <CheckCircle2 size={16} className={isReady ? 'text-[#00a651]' : 'text-slate-300'} />
                        <span className={`text-[10px] font-black uppercase tracking-widest ${isReady ? 'text-[#304B9E]' : 'text-slate-300'}`}>
-                         {isReady ? 'System Validated' : 'Validation Pending'}
+                         {isReady ? 'Registry Valid' : 'Incomplete'}
                        </span>
                     </div>
                 </div>
@@ -307,11 +288,40 @@ export const QuizBuilder = ({
                    <ListOrdered size={80} className="text-slate-300" strokeWidth={1} />
                 </div>
                 <h4 className="text-2xl font-black text-[#304B9E] uppercase tracking-widest">Initialize Node</h4>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-2">Select or create a question to begin editing</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Select a question to begin</p>
              </div>
            )}
         </div>
+    </div>
+  );
+
+  if (compact) return builderContent;
+
+  return (
+    <div className="h-full flex flex-col gap-6 animate-in slide-in-from-right duration-300 overflow-hidden">
+      <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#00a651] flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-6">
+           <button onClick={onBack} className="p-3 bg-white/10 rounded-xl hover:bg-[#ec2027] transition-all border border-white/10 active:scale-90">
+             <ChevronLeft size={24} strokeWidth={4} />
+           </button>
+           <div>
+             <h2 className="text-xl font-black uppercase tracking-tight leading-none">Global <span className="text-[#F05A28]">Exam</span> Architect</h2>
+             <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1 truncate max-w-[250px]">{title}</p>
+           </div>
+        </div>
+
+        <button 
+          onClick={() => onSave(questions)}
+          disabled={!isReady}
+          className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl transition-all border-b-4 border-black/20 flex items-center gap-3 ${
+            isReady ? 'bg-[#00a651] text-white hover:scale-105 active:scale-95' : 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
+          }`}
+        >
+          <Save size={18} strokeWidth={3} /> Save Examination
+        </button>
       </div>
+
+      {builderContent}
     </div>
   );
 };
@@ -333,7 +343,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
   const canEdit = checkPermission?.('courses', 'edit') ?? true;
 
   const filteredModules = useMemo(() => {
-    if (selectedId === 'all') return []; // If "Choose Programs" is selected, hide everything
+    if (selectedId === 'all') return [];
 
     let baseModules: (Module & { courseName?: string, courseId: string })[] = [];
     const c = courses.find(c => c.id === selectedId);
@@ -379,7 +389,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
     setCourses(updatedCourses);
     localStorage.setItem('ubook_courses_v3', JSON.stringify(updatedCourses));
     setEditingContext(null);
-    alert('Exam successfully updated across all hub instances.');
+    alert('Assessment successfully updated in Global Registry.');
   };
 
   const togglePublish = (courseId: string, moduleId: string) => {
@@ -408,7 +418,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
 
     return (
       <QuizBuilder 
-        title={module?.title || 'System Exam'} 
+        title={module?.title || 'Examination'} 
         initialQuestions={quiz?.quiz || []} 
         onBack={() => setEditingContext(null)} 
         onSave={handleSaveQuiz} 
@@ -418,7 +428,6 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
 
   return (
     <div className="h-full flex flex-col gap-3 overflow-hidden animate-in fade-in duration-500">
-      {/* Compact Header */}
       <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#6366f1] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="flex items-center gap-3 relative z-10">
@@ -427,12 +436,11 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
            </div>
            <div>
              <h2 className="text-lg md:text-xl font-black leading-none tracking-tight uppercase">Exam <span className="text-[#F05A28]">Control</span></h2>
-             <p className="text-[8px] font-black uppercase tracking-widest text-white/40 mt-1">Global hub assessment authority</p>
+             <p className="text-[8px] font-black uppercase tracking-widest text-white/40 mt-1">Registry Assessment Protocol</p>
            </div>
         </div>
       </div>
 
-      {/* Control Strip */}
       <div className="w-full bg-white p-2.5 rounded-2xl shadow-lg border border-slate-100 flex flex-col md:flex-row items-center gap-2.5 flex-shrink-0">
         <div className="flex-1 relative w-full group">
           <select 
@@ -440,7 +448,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
             onChange={(e) => setSelectedId(e.target.value)} 
             className="w-full bg-slate-50 pl-4 pr-10 py-2.5 rounded-xl border border-slate-100 outline-none font-black text-[10px] text-[#304B9E] uppercase appearance-none cursor-pointer focus:border-[#6366f1] transition-all shadow-inner"
           >
-            <option value="all">Choose Programs</option>
+            <option value="all">Select Curriculum Library</option>
             {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-[#6366f1] transition-colors" />
@@ -450,7 +458,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#6366f1] transition-colors" />
           <input 
             type="text" 
-            placeholder="Search exam context..." 
+            placeholder="Search exam structures..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 pl-10 pr-4 py-2.5 rounded-xl border border-slate-100 outline-none font-black text-[10px] text-[#304B9E] uppercase placeholder:text-slate-200 focus:border-[#6366f1] transition-all shadow-inner"
@@ -458,14 +466,13 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
         </div>
       </div>
 
-      {/* Modules Grid */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {selectedId === 'all' ? (
              <div className="col-span-full py-32 text-center opacity-40">
                 <Layers size={64} className="mx-auto text-slate-200 mb-4" />
-                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">Select a Program</h4>
-                <p className="text-sm font-bold text-slate-400 mt-2 uppercase">Please choose a program from the menu above to manage assessments</p>
+                <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">Select target curriculum</h4>
+                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Global hub access required for assessment deployment</p>
              </div>
           ) : filteredModules.length > 0 ? (
             filteredModules.map((module, i) => {
@@ -498,13 +505,13 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
                         className="flex-1 py-3 bg-[#304B9E] text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#6366f1] transition-all flex items-center justify-center gap-2 shadow-md border-b-4 border-black/10 active:scale-95 group/edit"
                       >
                         <FileEdit size={14} strokeWidth={3} className="group-hover/edit:rotate-12 transition-transform" /> 
-                        Edit Exam
+                        Architect Exam
                       </button>
                     ) : (
                       <button 
                         className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
                       >
-                        <Eye size={14} strokeWidth={3} /> Preview
+                        <Eye size={14} strokeWidth={3} /> Node Preview
                       </button>
                     )}
                     <button className="p-3 bg-white text-slate-200 rounded-xl border-2 border-slate-50 hover:text-[#ec2027] hover:border-red-100 transition-all shadow-sm">
@@ -517,7 +524,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
           ) : (
             <div className="col-span-full py-20 text-center opacity-30">
                <Search size={48} className="mx-auto text-slate-300 mb-2" />
-               <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-widest">No results</h4>
+               <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-widest">No matching registry nodes</h4>
             </div>
           )}
         </div>
