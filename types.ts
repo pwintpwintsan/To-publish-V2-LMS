@@ -64,6 +64,8 @@ export interface Lesson {
   autoPassOnUpload?: boolean;
   isPublished?: boolean;
   isSample?: boolean;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface Module {
@@ -72,6 +74,8 @@ export interface Module {
   description?: string;
   lessons: Lesson[];
   isPublished?: boolean;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface Course {
@@ -87,6 +91,8 @@ export interface Course {
   duration?: string;
   modules: Module[];
   lastUpdated?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface School {
@@ -173,5 +179,6 @@ export enum View {
   ACCOUNT_CREATION = 'account-creation',
   REGISTER_BRANCH = 'register-branch',
   COURSE_VIEWER = 'course-viewer',
-  PROGRAM_SYLLABUS = 'program-syllabus'
+  PROGRAM_SYLLABUS = 'program-syllabus',
+  ACCESS_CONTROL = 'access-control'
 }

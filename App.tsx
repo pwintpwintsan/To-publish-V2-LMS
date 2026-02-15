@@ -24,6 +24,7 @@ import { BranchRegistrationView } from './components/views/BranchRegistrationVie
 import { CourseViewerView } from './components/views/CourseViewerView.tsx';
 import { LandingPageView } from './components/views/LandingPageView.tsx';
 import { OrderCheckoutView } from './components/views/OrderCheckoutView.tsx';
+import { AccessControlView } from './components/views/AccessControlView.tsx';
 import { View, Teacher, UserRole, UserPermissions, Order } from './types.ts';
 import { MOCK_TEACHER, MOCK_CLASSES } from './constants.tsx';
 
@@ -106,8 +107,7 @@ const App: React.FC = () => {
   }, [isLoggedIn, activeRole]);
 
   const handleGoAccessControl = useCallback(() => {
-    // Navigate to the management view that allows toggling access
-    setCurrentView(View.COURSES_ADMIN);
+    setCurrentView(View.ACCESS_CONTROL);
     setIsSidebarOpen(false);
   }, []);
 
@@ -128,7 +128,6 @@ const App: React.FC = () => {
   }, [isLoggedIn, activeRole]);
 
   const renderView = () => {
-    // UPDATED: Now clicking back goes directly to the role-specific dashboard (Home)
     const backHome = () => handleGoHome();
 
     switch (currentView) {
@@ -237,6 +236,8 @@ const App: React.FC = () => {
         return <BranchRegistrationView onBack={() => setCurrentView(View.ROLES_PERMISSIONS)} />;
       case View.COURSE_VIEWER:
         return selectedCourseId ? <CourseViewerView courseId={selectedCourseId} onBack={backHome} /> : null;
+      case View.ACCESS_CONTROL:
+        return <AccessControlView activeRole={activeRole} onBack={backHome} />;
       default:
         return <LandingPageView onLogin={(role) => { if(role) setActiveRole(role); setIsLoggedIn(true); }} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
     }
