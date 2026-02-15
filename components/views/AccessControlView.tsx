@@ -10,15 +10,11 @@ import {
   Check, 
   Layers, 
   Search, 
-  Library, 
   BookMarked,
-  Eye,
-  EyeOff,
-  Sparkles,
-  ArrowRight,
-  Filter,
-  CheckCircle2,
-  AlertCircle,
+  Clock,
+  Calendar,
+  Timer,
+  Save,
   MonitorPlay,
   FileText,
   ClipboardList,
@@ -26,11 +22,8 @@ import {
   MessageSquareQuote,
   FileSearch,
   ChevronLeft,
-  Clock,
-  Calendar,
-  Timer,
-  Save,
-  Trash2
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 interface AccessControlViewProps {
@@ -106,10 +99,10 @@ const SchedulingModal = ({
         </div>
 
         <div className="mt-10 grid grid-cols-2 gap-4 shrink-0">
-           <button onClick={onClose} className="py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+           <button onClick={onClose} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
            <button 
              onClick={() => onSave(startDate, endDate)}
-             className="py-5 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 border-b-6 border-black/10 transition-all active:scale-95"
+             className="flex-[2] py-5 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 border-b-6 border-black/10 transition-all active:scale-95"
            >
               <Save size={18} strokeWidth={3} /> Deploy Schedule
            </button>
@@ -138,7 +131,7 @@ const SwitchToggle = ({ active, onToggle, label, size = 'md', disabled = false, 
         <button 
           onClick={(e) => { e.stopPropagation(); onScheduleClick(); }}
           className={`p-2 rounded-xl border-2 transition-all active:scale-90 ${hasSchedule ? 'bg-indigo-50 border-indigo-200 text-[#304B9E] shadow-sm' : 'bg-white border-slate-100 text-slate-300 hover:text-[#304B9E]'}`}
-          title="Set Schedule"
+          title="Set Availability Schedule"
         >
           <Clock size={size === 'lg' ? 24 : 16} strokeWidth={3} />
         </button>
@@ -172,7 +165,6 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
   const [filterMode, setFilterMode] = useState<'all' | 'published' | 'draft'>('all');
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
   
-  // Scheduling UI state
   const [schedulingContext, setSchedulingContext] = useState<{ 
     type: 'course' | 'module' | 'test', 
     courseId: string, 
@@ -232,20 +224,12 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
 
     const next = courses.map(c => {
       if (c.id !== courseId) return c;
-      
-      if (type === 'course') {
-        return { ...c, startDate: start, endDate: end };
-      }
-
+      if (type === 'course') return { ...c, startDate: start, endDate: end };
       return {
         ...c,
         modules: c.modules.map(m => {
           if (m.id !== modId) return m;
-          
-          if (type === 'module') {
-            return { ...m, startDate: start, endDate: end };
-          }
-
+          if (type === 'module') return { ...m, startDate: start, endDate: end };
           return {
             ...m,
             lessons: m.lessons.map(l => {
@@ -259,6 +243,17 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
 
     handleUpdate(next);
     setSchedulingContext(null);
+  };
+
+  const getScheduleStatus = (start?: string, end?: string) => {
+    if (!start && !end) return null;
+    const now = new Date();
+    const sDate = start ? new Date(start) : null;
+    const eDate = end ? new Date(end) : null;
+
+    if (eDate && now > eDate) return { label: 'EXPIRED', color: 'bg-red-50 text-red-600 border-red-100' };
+    if (sDate && now < sDate) return { label: 'SCHEDULED', color: 'bg-amber-50 text-amber-600 border-amber-100' };
+    return { label: 'LIVE NOW', color: 'bg-emerald-50 text-emerald-600 border-emerald-100 pulse' };
   };
 
   const filteredCourses = useMemo(() => {
@@ -282,17 +277,6 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
         case 'pdf': return <FileSearch size={14} />;
         default: return <FileText size={14} />;
     }
-  }
-
-  const getScheduleStatus = (start?: string, end?: string) => {
-    if (!start && !end) return null;
-    const now = new Date();
-    const sDate = start ? new Date(start) : null;
-    const eDate = end ? new Date(end) : null;
-
-    if (eDate && now > eDate) return { label: 'EXPIRED', color: 'bg-red-50 text-red-600 border-red-100' };
-    if (sDate && now < sDate) return { label: 'SCHEDULED', color: 'bg-amber-50 text-amber-600 border-amber-100' };
-    return { label: 'ACTIVE', color: 'bg-emerald-50 text-emerald-600 border-emerald-100' };
   }
 
   return (
@@ -320,19 +304,19 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
              <ShieldCheck size={32} strokeWidth={3} />
            </div>
            <div>
-             <h2 className="text-2xl md:text-3xl font-black leading-none tracking-tight uppercase">Master <span className="text-white opacity-60">Visibility Control</span></h2>
+             <h2 className="text-2xl md:text-3xl font-black leading-none tracking-tight uppercase">Master <span className="text-white opacity-60">Control Hub</span></h2>
              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-2">Activate/Deactivate & Schedule Curriculum Nodes</p>
            </div>
         </div>
       </div>
 
-      {/* Control Bar */}
+      {/* Search & Tabs */}
       <div className="w-full bg-white p-3 md:p-4 rounded-[2rem] shadow-lg border border-slate-100 flex flex-col md:flex-row items-center gap-4 flex-shrink-0">
         <div className="flex-[2] flex items-center gap-4 bg-slate-50 px-6 py-3.5 rounded-2xl border border-slate-100 w-full group focus-within:border-[#F05A28] transition-all shadow-inner">
           <Search size={22} className="text-slate-400 group-focus-within:text-[#304B9E]" strokeWidth={3} />
           <input 
             type="text" 
-            placeholder="Search programs to manage access..." 
+            placeholder="Search curricula nodes to manage..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent text-base font-black text-[#304B9E] outline-none w-full placeholder:text-slate-300 uppercase"
@@ -351,9 +335,9 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
         </div>
       </div>
 
-      {/* Registry View */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
-         <div className="space-y-4 px-2">
+      {/* Registry Table */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-20 px-2">
+         <div className="space-y-4">
             {filteredCourses.map((course) => {
               const status = getScheduleStatus(course.startDate, course.endDate);
               return (
@@ -380,7 +364,7 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
                        <SwitchToggle 
                          active={!!course.isPublished} 
                          onToggle={() => toggleCourse(course.id)} 
-                         label="GLOBAL VIEW" 
+                         label="GLOBAL" 
                          size="lg"
                          onScheduleClick={() => setSchedulingContext({ type: 'course', courseId: course.id, title: course.name, initialStart: course.startDate, initialEnd: course.endDate })}
                          hasSchedule={!!(course.startDate || course.endDate)}
@@ -403,7 +387,7 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
                                       <h4 className={`text-base font-black uppercase tracking-tight ${mod.isPublished ? 'text-[#304B9E]' : 'text-slate-400'}`}>{mod.title}</h4>
                                       {mStatus && (
                                         <span className={`inline-block mt-1 px-2 py-0.5 rounded-lg border text-[6px] font-black tracking-widest ${mStatus.color}`}>
-                                          AUTO-SWITCH: {mod.startDate?.split('T')[0]}
+                                          AUTO-LOGIC: {mod.startDate?.split('T')[0]}
                                         </span>
                                       )}
                                     </div>
@@ -423,14 +407,16 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
                                    return (
                                    <div key={lsn.id} className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between group ${lsn.isPublished ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-50 opacity-50'}`}>
                                       <div className="flex items-center gap-3 min-w-0">
-                                         <div className={`p-2 rounded-lg ${lsn.isPublished ? 'bg-[#304B9E] text-white shadow-md' : 'bg-slate-100 text-slate-300'}`}>
+                                         <div className={`p-2 rounded-lg shadow-sm ${lsn.isPublished ? 'bg-[#304B9E] text-white' : 'bg-slate-100 text-slate-300'}`}>
                                             {getIcon(lsn.type)}
                                          </div>
                                          <div className="min-w-0">
                                             <p className={`text-[10px] font-black uppercase tracking-tight truncate ${lsn.isPublished ? 'text-[#304B9E]' : 'text-slate-400'}`}>{lsn.title}</p>
                                             <div className="flex items-center gap-2">
-                                              <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">{lsn.type === 'quiz' ? 'Assessment' : 'Content'}</p>
-                                              {lStatus && <div className={`w-1.5 h-1.5 rounded-full ${lStatus.label === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />}
+                                              <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">
+                                                {lsn.type === 'quiz' ? 'Assessment' : lsn.type === 'assignment' ? 'Workshop' : lsn.type === 'matching' ? 'Logic Game' : 'Content'}
+                                              </p>
+                                              {lStatus && <div className={`w-1.5 h-1.5 rounded-full ${lStatus.label === 'LIVE NOW' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />}
                                             </div>
                                          </div>
                                       </div>
@@ -453,14 +439,14 @@ export const AccessControlView: React.FC<AccessControlViewProps> = ({ activeRole
             );})}
          </div>
       </div>
-
+      
       {/* Footer Info */}
       <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-between mx-2 mb-4 shrink-0">
          <div className="flex items-center gap-3">
             <CheckCircle2 size={16} className="text-[#00a651]" />
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Temporal Logic Engine Active</span>
          </div>
-         <p className="text-[8px] font-black text-[#304B9E] uppercase tracking-widest italic opacity-60">System synchronized across all hub nodes</p>
+         <p className="text-[8px] font-black text-[#304B9E] uppercase tracking-widest italic opacity-60">Centralized synchronization across all network nodes</p>
       </div>
     </div>
   );
