@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo } from 'react';
 import { MOCK_COURSES, MOCK_CLASSES } from '../../constants.tsx';
-import { Course, Module, Lesson, QuizQuestion } from '../../types.ts';
+import { Course, Module, Lesson, QuizQuestion, UserRole } from '../../types.ts';
 import { 
   CheckCircle2, 
   Zap, 
@@ -21,15 +22,24 @@ import {
   Type
 } from 'lucide-react';
 
-const SwitchToggle = ({ active, onClick }: { active: boolean; onClick: () => void }) => (
-  <button 
-    onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`w-10 h-5 rounded-full relative transition-all duration-300 shadow-inner overflow-hidden ${active ? 'bg-[#00a651]' : 'bg-slate-200'}`}
-  >
-    <div 
-      className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${active ? 'translate-x-5' : 'translate-x-0'}`}
-    />
-  </button>
+/**
+ * Enhanced Switch Toggle with clear ON/OFF state indicators
+ */
+const SwitchToggle = ({ active, onClick, disabled = false }: { active: boolean; onClick: () => void, disabled?: boolean }) => (
+  <div className="flex flex-col items-center gap-1">
+    <button 
+      disabled={disabled}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className={`w-10 h-5 rounded-full relative transition-all duration-300 shadow-inner overflow-hidden ${active ? 'bg-[#00a651]' : 'bg-slate-200'} ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+    >
+      <div 
+        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${active ? 'translate-x-5' : 'translate-x-0'}`}
+      />
+    </button>
+    <span className={`text-[7px] font-black uppercase tracking-widest ${active ? 'text-[#00a651] scale-110' : 'text-slate-400'}`}>
+       {active ? 'ON' : 'OFF'}
+    </span>
+  </div>
 );
 
 export const QuizViewer = ({ 
@@ -67,7 +77,7 @@ export const QuizViewer = ({
                   <span className="w-10 h-10 rounded-lg bg-[#304B9E] text-white flex items-center justify-center font-black text-lg shadow-lg shrink-0">
                     {i + 1}
                   </span>
-                  <div className="flex-1 space-y-4">
+                  <div className="flex-1 space-y-4 pt-1">
                     <h4 className="text-lg font-black text-[#304B9E] uppercase tracking-tight leading-tight">
                       {q.question || 'No question text provided.'}
                     </h4>
@@ -123,13 +133,15 @@ export const QuizBuilder = ({
   onBack, 
   onSave, 
   title,
-  compact = false
+  compact = false,
+  readOnly = false
 }: { 
   initialQuestions: QuizQuestion[], 
   onBack: () => void, 
   onSave: (questions: QuizQuestion[]) => void,
   title: string,
-  compact?: boolean
+  compact?: boolean,
+  readOnly?: boolean
 }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>(
     initialQuestions.length > 0 ? [...initialQuestions] : [{
@@ -143,12 +155,13 @@ export const QuizBuilder = ({
   const MAX_QUESTIONS = 15;
 
   const handleAddQuestion = () => {
-    if (questions.length >= MAX_QUESTIONS) return;
+    if (readOnly || questions.length >= MAX_QUESTIONS) return;
     setQuestions([...questions, { id: Date.now().toString(), question: '', options: ['', ''], correctAnswer: 0 }]);
     setActiveIdx(questions.length);
   };
 
   const updateQuestion = (data: Partial<QuizQuestion>) => {
+    if (readOnly) return;
     const newQs = [...questions];
     newQs[activeIdx] = { ...newQs[activeIdx], ...data };
     setQuestions(newQs);
@@ -156,7 +169,7 @@ export const QuizBuilder = ({
   };
 
   const removeQuestion = (idx: number) => {
-    if (questions.length <= 1) return;
+    if (readOnly || questions.length <= 1) return;
     const nextQs = questions.filter((_, i) => i !== idx);
     setQuestions(nextQs);
     setActiveIdx(Math.max(0, activeIdx - 1));
@@ -174,9 +187,11 @@ export const QuizBuilder = ({
              <h3 className="text-[10px] font-black text-[#304B9E] uppercase tracking-widest flex items-center gap-2">
                <ListOrdered size={16} className="text-[#00a651]" /> Question Hub
              </h3>
-             <button onClick={handleAddQuestion} disabled={questions.length >= MAX_QUESTIONS} className={`p-2 rounded-xl transition-all shadow-md ${questions.length < MAX_QUESTIONS ? 'bg-[#00a651] text-white hover:scale-110 active:scale-90' : 'bg-slate-200 text-slate-400'}`}>
-               <Plus size={20} strokeWidth={4} />
-             </button>
+             {!readOnly && (
+               <button onClick={handleAddQuestion} disabled={questions.length >= MAX_QUESTIONS} className={`p-2 rounded-xl transition-all shadow-md ${questions.length < MAX_QUESTIONS ? 'bg-[#00a651] text-white hover:scale-110 active:scale-90' : 'bg-slate-200 text-slate-400'}`}>
+                 <Plus size={20} strokeWidth={4} />
+               </button>
+             )}
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2 p-6 bg-slate-50/50">
@@ -186,10 +201,10 @@ export const QuizBuilder = ({
                     <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-[10px] shadow-md transition-all ${activeIdx === i ? 'bg-[#00a651] text-white' : 'bg-slate-100 text-slate-400'}`}>{i + 1}</span>
                     <span className={`text-[11px] font-black uppercase tracking-tight truncate ${activeIdx === i ? 'text-[#304B9E]' : 'text-slate-400'}`}>{q.question || 'New Query...'}</span>
                  </div>
-                 {questions.length > 1 && <button onClick={(e) => { e.stopPropagation(); removeQuestion(i); }} className="p-2 text-slate-200 hover:text-[#ec2027] opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>}
+                 {!readOnly && questions.length > 1 && <button onClick={(e) => { e.stopPropagation(); removeQuestion(i); }} className="p-2 text-slate-200 hover:text-[#ec2027] opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>}
                </div>
              ))}
-             {questions.length < MAX_QUESTIONS && (
+             {!readOnly && questions.length < MAX_QUESTIONS && (
                <button onClick={handleAddQuestion} className="w-full p-4 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-3 text-slate-300 font-black text-[10px] uppercase tracking-widest hover:border-[#00a651] hover:text-[#00a651] transition-all group">
                   <PlusCircle size={18} className="group-hover:rotate-90 transition-transform" /> Add Quest {questions.length + 1}
                </button>
@@ -209,7 +224,8 @@ export const QuizBuilder = ({
                         <Type size={14} className="text-[#ec2027]" /> Query Definition
                       </label>
                       <textarea 
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 font-black text-[#304B9E] text-base outline-none focus:border-[#00a651] shadow-inner transition-all resize-none" 
+                        readOnly={readOnly}
+                        className={`w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 font-black text-[#304B9E] text-base outline-none shadow-inner transition-all resize-none ${readOnly ? '' : 'focus:border-[#00a651]'}`} 
                         placeholder="Enter the challenge or question content..." 
                         rows={3}
                         value={activeQ.question} 
@@ -222,7 +238,7 @@ export const QuizBuilder = ({
                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                            <Layers size={14} className="text-[#3b82f6]" /> Response Nodes
                          </label>
-                         {activeQ.options.length < 5 && (
+                         {!readOnly && activeQ.options.length < 5 && (
                            <button 
                              onClick={() => updateQuestion({ options: [...activeQ.options, ''] })} 
                              className="text-[10px] font-black uppercase tracking-widest text-[#00a651] hover:text-[#304B9E] flex items-center gap-1 transition-colors"
@@ -236,6 +252,7 @@ export const QuizBuilder = ({
                         {activeQ.options.map((opt, oIdx) => (
                           <div key={oIdx} className={`group flex items-center gap-3 p-3 rounded-2xl border-2 transition-all duration-300 ${activeQ.correctAnswer === oIdx ? 'bg-green-50 border-[#00a651] shadow-md' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
                              <button 
+                               disabled={readOnly}
                                onClick={() => updateQuestion({ correctAnswer: oIdx })} 
                                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all flex-shrink-0 shadow-lg ${activeQ.correctAnswer === oIdx ? 'bg-[#00a651] text-white scale-110 rotate-3' : 'bg-slate-50 text-slate-300 hover:bg-slate-100'}`}
                              >
@@ -243,6 +260,7 @@ export const QuizBuilder = ({
                              </button>
                              <div className="flex-1 flex items-center gap-2">
                                 <input 
+                                  readOnly={readOnly}
                                   className="flex-1 bg-transparent font-black text-[#304B9E] text-xs outline-none px-2 uppercase placeholder:text-slate-200" 
                                   placeholder={`Define Option ${String.fromCharCode(65 + oIdx)}...`} 
                                   value={opt} 
@@ -252,7 +270,7 @@ export const QuizBuilder = ({
                                     updateQuestion({ options: nextOpts }); 
                                   }} 
                                 />
-                                {activeQ.options.length > 2 && (
+                                {!readOnly && activeQ.options.length > 2 && (
                                   <button 
                                     onClick={() => {
                                       const nextOpts = activeQ.options.filter((_, i) => i !== oIdx);
@@ -310,15 +328,17 @@ export const QuizBuilder = ({
            </div>
         </div>
 
-        <button 
-          onClick={() => onSave(questions)}
-          disabled={!isReady}
-          className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl transition-all border-b-4 border-black/20 flex items-center gap-3 ${
-            isReady ? 'bg-[#00a651] text-white hover:scale-105 active:scale-95' : 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
-          }`}
-        >
-          <Save size={18} strokeWidth={3} /> Save Examination
-        </button>
+        {!readOnly && (
+          <button 
+            onClick={() => onSave(questions)}
+            disabled={!isReady}
+            className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl transition-all border-b-4 border-black/20 flex items-center gap-3 ${
+              isReady ? 'bg-[#00a651] text-white hover:scale-105 active:scale-95' : 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
+            }`}
+          >
+            <Save size={18} strokeWidth={3} /> Save Examination
+          </button>
+        )}
       </div>
 
       {builderContent}
@@ -328,9 +348,10 @@ export const QuizBuilder = ({
 
 interface TestsViewProps {
   checkPermission?: (category: any, action: string) => boolean;
+  activeRole?: UserRole;
 }
 
-export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
+export const TestsView: React.FC<TestsViewProps> = ({ checkPermission, activeRole }) => {
   const [courses, setCourses] = useState<Course[]>(() => {
     const saved = localStorage.getItem('ubook_courses_v3');
     return saved ? JSON.parse(saved) : MOCK_COURSES;
@@ -340,7 +361,11 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingContext, setEditingContext] = useState<{ courseId: string, moduleId: string } | null>(null);
 
-  const canEdit = checkPermission?.('courses', 'edit') ?? true;
+  const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
+  const isSchoolAdmin = activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN;
+  // School Admin manages access control, Main Center manages architecture
+  const canManageAccess = isMainAdmin || isSchoolAdmin;
+  const canEditArchitecture = isMainAdmin;
 
   const filteredModules = useMemo(() => {
     if (selectedId === 'all') return [];
@@ -393,7 +418,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
   };
 
   const togglePublish = (courseId: string, moduleId: string) => {
-     if (!canEdit) return;
+     if (!canManageAccess) return;
      const updatedCourses = courses.map(c => {
         if (c.id !== courseId) return c;
         return {
@@ -422,6 +447,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
         initialQuestions={quiz?.quiz || []} 
         onBack={() => setEditingContext(null)} 
         onSave={handleSaveQuiz} 
+        readOnly={!canEditArchitecture}
       />
     );
   }
@@ -484,7 +510,12 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-md border-b-2 border-black/10 transition-all ${isActive ? 'bg-[#00a651] text-white rotate-3' : 'bg-slate-100 text-slate-300'}`}>
                       {isActive ? <Zap size={18} fill="currentColor" /> : i + 1}
                     </div>
-                    <SwitchToggle active={isActive} onClick={() => togglePublish(module.courseId, module.id)} />
+                    {/* SwitchToggle allowed for Main Center and School Admins */}
+                    <SwitchToggle 
+                      active={isActive} 
+                      onClick={() => togglePublish(module.courseId, module.id)} 
+                      disabled={!canManageAccess}
+                    />
                   </div>
 
                   <div className="min-w-0 relative z-10">
@@ -499,7 +530,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
                   </div>
                   
                   <div className="mt-auto pt-4 border-t-2 border-slate-50 flex items-center gap-2 relative z-10">
-                    {canEdit ? (
+                    {canEditArchitecture ? (
                       <button 
                         onClick={() => setEditingContext({ courseId: module.courseId, moduleId: module.id })} 
                         className="flex-1 py-3 bg-[#304B9E] text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#6366f1] transition-all flex items-center justify-center gap-2 shadow-md border-b-4 border-black/10 active:scale-95 group/edit"
@@ -509,14 +540,17 @@ export const TestsView: React.FC<TestsViewProps> = ({ checkPermission }) => {
                       </button>
                     ) : (
                       <button 
+                        onClick={() => setEditingContext({ courseId: module.courseId, moduleId: module.id })}
                         className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95"
                       >
                         <Eye size={14} strokeWidth={3} /> Node Preview
                       </button>
                     )}
-                    <button className="p-3 bg-white text-slate-200 rounded-xl border-2 border-slate-50 hover:text-[#ec2027] hover:border-red-100 transition-all shadow-sm">
-                       <Trash2 size={16} />
-                    </button>
+                    {canEditArchitecture && (
+                      <button className="p-3 bg-white text-slate-200 rounded-xl border-2 border-slate-50 hover:text-[#ec2027] hover:border-red-100 transition-all shadow-sm">
+                         <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               );

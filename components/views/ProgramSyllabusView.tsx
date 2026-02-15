@@ -223,19 +223,16 @@ export const ProgramSyllabusView: React.FC<ProgramSyllabusViewProps> = ({ course
 
       <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between shrink-0 mb-2">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2.5 bg-slate-50 text-[#304B9E] rounded-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100">
+          <button onClick={onBack} className="p-2.5 bg-slate-50 text-[#304B9E] rounded-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100 flex items-center gap-2 pr-4">
             <ChevronLeft size={20} strokeWidth={4} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Back library</span>
           </button>
+          <div className="h-8 w-px bg-slate-100 hidden sm:block"></div>
           <div>
             <h2 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter leading-none">Curriculum Roadmap</h2>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{course.name}</p>
           </div>
         </div>
-        {isStaff && onEdit && (
-          <button onClick={onEdit} className="px-4 py-2 bg-[#F05A28] text-white rounded-xl font-black text-[8px] uppercase tracking-widest shadow-lg border-b-4 border-black/10 hover:bg-[#304B9E] transition-all">
-            <Settings2 size={14} /> Architect Hub
-          </button>
-        )}
       </div>
 
       <div className="max-w-[1000px] mx-auto w-full px-2 space-y-6">

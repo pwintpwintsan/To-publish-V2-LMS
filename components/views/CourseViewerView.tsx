@@ -98,8 +98,9 @@ export const CourseViewerView: React.FC<CourseViewerViewProps> = ({ courseId, on
       {/* Global Branding Header */}
       <div className="h-16 px-6 bg-[#304B9E] flex items-center justify-between shrink-0 shadow-lg border-b-4 border-[#F05A28] z-50">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 bg-white/10 rounded-xl text-white hover:bg-[#F05A28] transition-all active:scale-90 border border-white/20">
+          <button onClick={onBack} className="p-2.5 bg-slate-50 text-[#304B9E] rounded-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100 flex items-center gap-2 pr-4">
             <ChevronLeft size={20} strokeWidth={4} />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
           </button>
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-md">

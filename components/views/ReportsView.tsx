@@ -21,7 +21,8 @@ import {
   CheckCircle2,
   Percent,
   Edit3,
-  Filter
+  Filter,
+  ChevronLeft
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -36,6 +37,7 @@ import {
 
 interface ReportsViewProps {
   activeRole?: UserRole;
+  onBack?: () => void;
 }
 
 type ReportTab = 'class' | 'course' | 'learner';
@@ -139,7 +141,7 @@ const StudentsListModal = ({ isOpen, onClose, title, students }: { isOpen: boole
   );
 };
 
-export const ReportsView: React.FC<ReportsViewProps> = ({ activeRole }) => {
+export const ReportsView: React.FC<ReportsViewProps> = ({ activeRole, onBack }) => {
   const [activeTab, setActiveTab] = useState<ReportTab>('class');
   const [learnerSearchTerm, setLearnerSearchTerm] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>(MOCK_STUDENTS[0].id);
@@ -235,6 +237,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ activeRole }) => {
       <div className="w-full bg-[#304B9E] rounded-3xl p-6 text-white shadow-xl border-b-[10px] border-[#F05A28] flex flex-col md:flex-row items-center justify-between gap-6 shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
         <div className="flex items-center gap-5 relative z-10">
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#F05A28] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
+             </button>
+           )}
            <div className="p-4 bg-[#F05A28] rounded-2xl shadow-xl rotate-3">
              <BarChart3 size={28} strokeWidth={3} />
            </div>
@@ -397,9 +405,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ activeRole }) => {
                              </span>
                           </td>
                           <td className="px-6 py-5">
-                             <div className="flex flex-col">
-                                <p className="text-[11px] font-black text-[#304B9E] uppercase leading-none mb-1">{row.module}</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">{row.task}</p>
+                             <div className="flex items-center justify-between group">
+                                <div className="flex flex-col">
+                                   <p className="text-[11px] font-black text-[#304B9E] uppercase leading-none mb-1">{row.module}</p>
+                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">{row.task}</p>
+                                </div>
                              </div>
                           </td>
                           <td className="px-4 py-5 text-center">
@@ -483,7 +493,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ activeRole }) => {
                       <th className="px-6 py-6 text-center whitespace-nowrap">Class Name</th>
                       <th className="px-6 py-6 text-center whitespace-nowrap">Total Enrollment</th>
                       <th className="px-6 py-6 text-center whitespace-nowrap">Completion Rate</th>
-                      <th className="px-8 py-6 text-right whitespace-nowrap">Avg Grade</th>
+                      <th className="px-8 py-6 text-right whitespace-nowest">Avg Grade</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">

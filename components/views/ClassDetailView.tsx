@@ -167,13 +167,14 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classId, onStu
         />
       )}
       
-      {/* Standardized Compact Header Bar - Matching Hub Profile */}
+      {/* Standardized Compact Header Bar */}
       <div className="w-full bg-[#304B9E] rounded-xl p-3 md:p-4 text-white shadow-xl border-b-6 border-[#F05A28] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         
         <div className="flex items-center gap-4 relative z-10">
-           <button onClick={onBack} className="p-2 bg-white/10 rounded-lg text-white shadow-lg hover:bg-[#F05A28] transition-all group active:scale-90 border border-white/10 flex-shrink-0">
+           <button onClick={onBack} className="p-2.5 bg-slate-50 text-[#304B9E] rounded-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100 flex items-center gap-2 pr-4">
              <ChevronLeft size={20} strokeWidth={4} />
+             <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back library</span>
            </button>
            <div className="flex items-center gap-3">
               <div className="p-2 bg-[#F05A28] rounded-lg text-white shadow-lg rotate-3">
@@ -197,7 +198,7 @@ export const ClassDetailView: React.FC<ClassDetailViewProps> = ({ classId, onStu
         </div>
       </div>
 
-      {/* Control Bar - Matching Other Pages */}
+      {/* Control Bar */}
       <div className="w-full bg-white p-2.5 rounded-2xl shadow-lg border border-slate-100 flex flex-col md:flex-row items-center gap-2.5 flex-shrink-0">
         <div className="flex-1 flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 w-full group focus-within:border-[#F05A28] transition-all">
           <Search size={18} className="text-slate-400 group-focus-within:text-[#304B9E]" strokeWidth={3} />

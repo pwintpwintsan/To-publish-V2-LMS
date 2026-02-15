@@ -24,7 +24,6 @@ import { BranchRegistrationView } from './components/views/BranchRegistrationVie
 import { CourseViewerView } from './components/views/CourseViewerView.tsx';
 import { LandingPageView } from './components/views/LandingPageView.tsx';
 import { OrderCheckoutView } from './components/views/OrderCheckoutView.tsx';
-import { ProgramSyllabusView } from './components/views/ProgramSyllabusView.tsx';
 import { View, Teacher, UserRole, UserPermissions, Order } from './types.ts';
 import { MOCK_TEACHER, MOCK_CLASSES } from './constants.tsx';
 
@@ -43,6 +42,10 @@ const App: React.FC = () => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [teacher] = useState<Teacher>(MOCK_TEACHER);
 
+  // Persistent Library State (Filters, Sort, etc.)
+  const [libraryFilter, setLibraryFilter] = useState('');
+  const [librarySort, setLibrarySort] = useState<'name' | 'newest'>('name');
+
   const [rolePermissions, setRolePermissions] = useState<Record<string, UserPermissions>>({
     'Student': {
       courses: { view: true, edit: false, delete: false },
@@ -52,21 +55,21 @@ const App: React.FC = () => {
       reports: { view: false },
     },
     'Teacher': {
-      courses: { view: true, edit: true, delete: false },
+      courses: { view: true, edit: false, delete: false },
       certificates: { view: true, edit: true },
       accounts: { view: true, create: false, edit: false, delete: false },
       resources: { view: true, upload: false, delete: false, download: false },
       reports: { view: true },
     },
     'Super Admin': {
-      courses: { view: true, edit: true, delete: false },
+      courses: { view: true, edit: false, delete: false },
       certificates: { view: true, edit: true },
       accounts: { view: true, create: true, edit: true, delete: true },
       resources: { view: true, upload: false, delete: false, download: false },
       reports: { view: true },
     },
     'School Admin': {
-      courses: { view: true, edit: true, delete: true },
+      courses: { view: true, edit: false, delete: false },
       certificates: { view: true, edit: true },
       accounts: { view: true, create: true, edit: true, delete: true },
       resources: { view: true, upload: false, delete: false, download: false },
@@ -74,29 +77,40 @@ const App: React.FC = () => {
     }
   });
 
-  // Helper to check user permissions based on active role
   const checkPermission = useCallback((category: keyof UserPermissions, action: string): boolean => {
     if (!isLoggedIn) return category === 'courses' && action === 'view';
-    
-    // Main Center has absolute authority
-    if (activeRole === UserRole.MAIN_CENTER) {
-        return true;
-    }
-    
+    if (activeRole === UserRole.MAIN_CENTER) return true;
     const roleKey = activeRole === UserRole.STUDENT ? 'Student' : 
                     activeRole === UserRole.TEACHER ? 'Teacher' : 
                     activeRole === UserRole.SUPER_ADMIN ? 'Super Admin' : 'School Admin';
-    
     const rolePerms = rolePermissions[roleKey];
     if (!rolePerms || !rolePerms[category]) return false;
-    
-    // For single boolean permissions like 'reports', action can be 'view'
     const permGroup = rolePerms[category] as any;
     if (typeof permGroup === 'boolean') return permGroup;
     return permGroup[action] || false;
   }, [isLoggedIn, activeRole, rolePermissions]);
 
-  // Handle automatic view transitions based on login state and role
+  const handleGoHome = useCallback(() => {
+    if (!isLoggedIn) {
+      setCurrentView(View.LANDING);
+    } else {
+      if (activeRole === UserRole.STUDENT) {
+        setCurrentView(View.STUDENT_DASHBOARD);
+      } else if (activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN || activeRole === UserRole.TEACHER) {
+        setCurrentView(View.CENTER_PROFILE);
+      } else {
+        setCurrentView(View.CENTER_LIST);
+      }
+    }
+    setIsSidebarOpen(false);
+  }, [isLoggedIn, activeRole]);
+
+  const handleGoAccessControl = useCallback(() => {
+    // Navigate to the management view that allows toggling access
+    setCurrentView(View.COURSES_ADMIN);
+    setIsSidebarOpen(false);
+  }, []);
+
   useEffect(() => {
     if (!isLoggedIn) {
       setCurrentView(View.LANDING);
@@ -113,23 +127,30 @@ const App: React.FC = () => {
     }
   }, [isLoggedIn, activeRole]);
 
-  // View renderer switch
   const renderView = () => {
+    // UPDATED: Now clicking back goes directly to the role-specific dashboard (Home)
+    const backHome = () => handleGoHome();
+
     switch (currentView) {
       case View.LANDING:
         return <LandingPageView onLogin={(role) => { if(role) setActiveRole(role); setIsLoggedIn(true); }} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
       case View.CHECKOUT:
-        return currentOrder ? <OrderCheckoutView order={currentOrder} onBack={() => setCurrentView(View.MY_CLASSES)} /> : null;
+        return currentOrder ? <OrderCheckoutView order={currentOrder} onBack={backHome} /> : null;
       case View.MY_CLASSES:
         return <MyClassesView 
                   teacher={teacher} 
                   classes={MOCK_CLASSES} 
                   activeRole={activeRole} 
+                  filterText={libraryFilter}
+                  onFilterChange={setLibraryFilter}
+                  sortOrder={librarySort}
+                  onSortChange={setLibrarySort}
                   onEnterClass={(id) => { setSelectedClassId(id); setCurrentView(View.CLASS_DETAIL); }}
                   onEnterCenter={(id) => { setSelectedCenterId(id); setCurrentView(View.CENTER_DETAIL); }}
-                  onEnterCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.PROGRAM_SYLLABUS); }}
+                  onEnterCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
                   onEditCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSES_ADMIN); }}
                   onAddBranch={() => setCurrentView(View.REGISTER_BRANCH)}
+                  onBack={backHome}
                 />;
       case View.CLASSES:
         return <ClassesListView 
@@ -147,55 +168,58 @@ const App: React.FC = () => {
       case View.CENTER_DETAIL:
         return selectedCenterId ? <CenterDetailView 
                                     centerId={selectedCenterId} 
-                                    onBack={() => setCurrentView(View.CENTER_LIST)}
+                                    onBack={backHome}
                                     onManageCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSES_ADMIN); }}
                                     onPreviewCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
-                                    onViewSyllabus={(id) => { setSelectedCourseId(id); setCurrentView(View.PROGRAM_SYLLABUS); }}
+                                    onViewSyllabus={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
                                     checkPermission={checkPermission}
+                                    activeRole={activeRole}
                                   /> : null;
       case View.CLASS_DETAIL:
         return selectedClassId ? <ClassDetailView 
                                     classId={selectedClassId} 
                                     onStudentClick={(id) => { setSelectedStudentId(id); setCurrentView(View.STUDENT_DETAIL); }}
-                                    onBack={() => setCurrentView(View.CLASSES)}
+                                    onBack={backHome}
                                     onEnterCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
-                                    onViewSyllabus={(id) => { setSelectedCourseId(id); setCurrentView(View.PROGRAM_SYLLABUS); }}
+                                    onViewSyllabus={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
                                     checkPermission={checkPermission}
                                   /> : null;
       case View.STUDENT_DETAIL:
         return selectedStudentId ? <StudentDetailView 
                                       studentId={selectedStudentId} 
-                                      onBack={() => setCurrentView(View.CLASS_DETAIL)}
+                                      onBack={backHome}
                                       onClassClick={(id) => { setSelectedClassId(id); setCurrentView(View.CLASS_DETAIL); }}
                                       onEnterCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
                                     /> : null;
       case View.STUDENT_DASHBOARD:
         return <StudentDashboardView 
                   onEnterCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
-                  onCourseClick={(id) => { setSelectedCourseId(id); setCurrentView(View.PROGRAM_SYLLABUS); }}
+                  onCourseClick={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
                 />;
       case View.STUDENTS:
         return <StudentsView 
                   onStudentClick={(id) => { setSelectedStudentId(id); setCurrentView(View.STUDENT_DETAIL); }} 
                   onAddStudent={() => setCurrentView(View.ACCOUNT_CREATION)}
+                  onBack={backHome}
                   checkPermission={checkPermission} 
                 />;
       case View.GRADES:
-        return <GradesView />;
+        return <GradesView onBack={backHome} />;
       case View.REPORTS:
-        return <ReportsView activeRole={activeRole} />;
+        return <ReportsView activeRole={activeRole} onBack={backHome} />;
       case View.CERTIFICATES:
-        return <CertificatesView />;
+        return <CertificatesView onBack={backHome} />;
       case View.TESTS:
-        return <TestsView checkPermission={checkPermission} />;
+        return <TestsView checkPermission={checkPermission} activeRole={activeRole} onBack={backHome} />;
       case View.RESOURCES:
-        return <TeachingResourcesView checkPermission={checkPermission} />;
+        return <TeachingResourcesView checkPermission={checkPermission} onBack={backHome} />;
       case View.COURSES_ADMIN:
         return <CoursesAdminView 
                   initialCourseId={selectedCourseId}
-                  onExitEdit={() => { setSelectedCourseId(null); setCurrentView(View.MY_CLASSES); }}
+                  onExitEdit={backHome}
                   onPreviewCourse={(id) => { setSelectedCourseId(id); setCurrentView(View.COURSE_VIEWER); }}
                   checkPermission={checkPermission}
+                  activeRole={activeRole}
                 />;
       case View.ROLES_PERMISSIONS:
         return <RolesPermissionsView 
@@ -203,23 +227,16 @@ const App: React.FC = () => {
                   onRegisterBranch={() => setCurrentView(View.REGISTER_BRANCH)}
                   rolePerms={rolePermissions}
                   setRolePerms={setRolePermissions}
+                  onBack={backHome}
                 />;
       case View.EDIT_CERTIFICATES:
-        return <EditCertificatesView />;
+        return <EditCertificatesView onBack={backHome} />;
       case View.ACCOUNT_CREATION:
-        return <AccountCreationView activeRole={activeRole} checkPermission={checkPermission} />;
+        return <AccountCreationView activeRole={activeRole} checkPermission={checkPermission} onBack={backHome} />;
       case View.REGISTER_BRANCH:
         return <BranchRegistrationView onBack={() => setCurrentView(View.ROLES_PERMISSIONS)} />;
       case View.COURSE_VIEWER:
-        return selectedCourseId ? <CourseViewerView courseId={selectedCourseId} onBack={() => setCurrentView(View.MY_CLASSES)} /> : null;
-      case View.PROGRAM_SYLLABUS:
-        return selectedCourseId ? <ProgramSyllabusView 
-                                    courseId={selectedCourseId} 
-                                    onBack={() => setCurrentView(View.MY_CLASSES)}
-                                    onEnroll={() => { setCurrentOrder({ id: 'NEW-' + Date.now(), courseId: selectedCourseId, courseName: 'New Program Enrollment', branchId: 'sch1', branchName: 'Downtown Branch', seats: 10, pricePerSeat: 50000, totalAmount: 500000, status: 'pending-approval', date: new Date().toISOString(), requesterName: 'Jane Smith' }); setCurrentView(View.CHECKOUT); }}
-                                    onEdit={() => { setCurrentView(View.COURSES_ADMIN); }}
-                                    activeRole={activeRole}
-                                  /> : null;
+        return selectedCourseId ? <CourseViewerView courseId={selectedCourseId} onBack={backHome} /> : null;
       default:
         return <LandingPageView onLogin={(role) => { if(role) setActiveRole(role); setIsLoggedIn(true); }} onOrderCreate={(o) => { setCurrentOrder(o); setCurrentView(View.CHECKOUT); }} />;
     }
@@ -237,6 +254,8 @@ const App: React.FC = () => {
         onRoleChange={setActiveRole}
         onLogout={() => setIsLoggedIn(false)}
         onLogin={() => setIsLoggedIn(true)}
+        onGoHome={handleGoHome}
+        onGoAccessControl={handleGoAccessControl}
       />
       <div className="flex flex-1 overflow-hidden">
         {isLoggedIn && (
@@ -257,5 +276,4 @@ const App: React.FC = () => {
   );
 };
 
-// Export App as the default export to be used in index.tsx
 export default App;

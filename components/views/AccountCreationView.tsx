@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_SCHOOLS, MOCK_COURSES } from '../../constants.tsx';
 import { UserRole } from '../../types.ts';
@@ -33,12 +34,14 @@ import {
   Database,
   Minus,
   BookOpen,
-  PlusSquare
+  PlusSquare,
+  ChevronLeft
 } from 'lucide-react';
 
 interface AccountCreationViewProps {
   activeRole?: UserRole;
   checkPermission?: (category: any, action: string) => boolean;
+  onBack?: () => void;
 }
 
 type AccountRole = 'Admin' | 'Teacher' | 'Student';
@@ -617,9 +620,10 @@ const CreateAccountModal = ({ onClose, onSave, initialRole }: { onClose: () => v
   );
 };
 
-export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ activeRole, checkPermission }) => {
+export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ activeRole, checkPermission, onBack }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddSeatsOpen, setIsAddSeatsOpen] = useState(false);
+  // Fix: Initialized seatTypeForModal with 'student' and fixed duplicated type definition
   const [seatTypeForModal, setSeatTypeForModal] = useState<'student' | 'teacher'>('student');
   const [assigningUserId, setAssigningUserId] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -760,7 +764,6 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
         />
       )}
 
-      {/* FIXED: Fixed syntax for onAssign prop and passed handleAssignUser handler */}
       {assigningUserId && (
         <AssignUserModal 
           targetId={assigningUserId}
@@ -773,6 +776,12 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
       <div className="w-full bg-[#304B9E] rounded-[2rem] p-5 md:p-6 text-white shadow-xl border-b-[10px] border-[#F05A28] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
         <div className="flex items-center gap-4 relative z-10">
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#F05A28] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
+             </button>
+           )}
            <div className="p-3.5 bg-[#F05A28] rounded-xl text-white shadow-lg rotate-3 border-b-4 border-black/10">
              <Fingerprint size={28} strokeWidth={3} />
            </div>

@@ -1,8 +1,12 @@
 
 import React, { useState, useRef } from 'react';
 import { MOCK_COURSES } from '../../constants.tsx';
-import { Award, Palette, Layout, Save, Star, Sparkles, RefreshCw, BookOpen, User, Hash, Calendar, Type, CheckCircle2, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Award, Palette, Layout, Save, Star, Sparkles, RefreshCw, BookOpen, User, Hash, Calendar, Type, CheckCircle2, Upload, Trash2, Image as ImageIcon, ChevronLeft } from 'lucide-react';
 import { LogoMark } from '../Header.tsx';
+
+interface EditCertificatesViewProps {
+  onBack?: () => void;
+}
 
 const BrandLogo = () => (
   <div className="flex flex-col items-center">
@@ -15,7 +19,7 @@ const BrandLogo = () => (
   </div>
 );
 
-export const EditCertificatesView: React.FC = () => {
+export const EditCertificatesView: React.FC<EditCertificatesViewProps> = ({ onBack }) => {
   const initialConfig = {
     primaryColor: '#304B9E',
     secondaryColor: '#F05A28',
@@ -92,6 +96,12 @@ export const EditCertificatesView: React.FC = () => {
       <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#3b82f6] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="flex items-center gap-3 relative z-10">
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#F05A28] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
+             </button>
+           )}
            <div className="p-2.5 bg-[#3b82f6] rounded-lg text-white shadow-lg rotate-3">
              <Award size={22} strokeWidth={3} />
            </div>

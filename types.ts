@@ -78,10 +78,10 @@ export interface Course {
   id: string;
   name: string;
   isPurchased: boolean;
+  isPublished?: boolean; // Course-level access control
   thumbnail: string;
   description?: string;
   category?: string;
-  // Fix: Added subCategory property to Course interface to resolve property mismatch errors in constants.tsx and CoursesAdminView.tsx
   subCategory?: string;
   level?: string;
   duration?: string;

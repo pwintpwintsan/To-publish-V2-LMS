@@ -2,15 +2,16 @@
 import React, { useState } from 'react';
 import { MOCK_STUDENTS, MOCK_CLASSES } from '../../constants.tsx';
 import { Student } from '../../types.ts';
-import { Search, Filter, Edit, MoreVertical, Trash2, LayoutGrid, Users, Sparkles, ChevronDown, UserPlus } from 'lucide-react';
+import { Search, Filter, Edit, MoreVertical, Trash2, LayoutGrid, Users, Sparkles, ChevronDown, UserPlus, ChevronLeft } from 'lucide-react';
 
 interface StudentsViewProps {
   onStudentClick: (id: string) => void;
   onAddStudent?: () => void;
+  onBack?: () => void;
   checkPermission?: (category: any, action: string) => boolean;
 }
 
-export const StudentsView: React.FC<StudentsViewProps> = ({ onStudentClick, onAddStudent, checkPermission }) => {
+export const StudentsView: React.FC<StudentsViewProps> = ({ onStudentClick, onAddStudent, onBack, checkPermission }) => {
   const [students] = useState<Student[]>(MOCK_STUDENTS);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
@@ -32,6 +33,12 @@ export const StudentsView: React.FC<StudentsViewProps> = ({ onStudentClick, onAd
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
         
         <div className="flex items-center gap-6 relative z-10">
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#F05A28] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
+             </button>
+           )}
            <div className="p-4 md:p-5 bg-[#F05A28] rounded-2xl text-white shadow-xl rotate-3 border-b-4 border-black/10">
              <Users size={32} strokeWidth={3} />
            </div>

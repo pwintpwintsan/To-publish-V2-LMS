@@ -20,15 +20,16 @@ import {
   LayoutGrid,
   Zap,
   Palette,
-  ClipboardList
+  ClipboardList,
+  ChevronLeft
 } from 'lucide-react';
 
 interface RolesPermissionsViewProps {
   activeRole: UserRole;
   onRegisterBranch: () => void;
-  // Added rolePerms and setRolePerms to props to match App.tsx usage
   rolePerms: Record<string, UserPermissions>;
   setRolePerms: React.Dispatch<React.SetStateAction<Record<string, UserPermissions>>>;
+  onBack?: () => void;
 }
 
 type PermissionStatus = 'yes' | 'no' | string;
@@ -42,12 +43,12 @@ interface PermissionRow {
   icon: any;
 }
 
-// Added rolePerms and setRolePerms to destructuring to fix the prop mismatch error
 export const RolesPermissionsView: React.FC<RolesPermissionsViewProps> = ({ 
   activeRole, 
   onRegisterBranch,
   rolePerms,
-  setRolePerms
+  setRolePerms,
+  onBack
 }) => {
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>(MOCK_SCHOOLS[0].id);
   const selectedSchool = MOCK_SCHOOLS.find(s => s.id === selectedSchoolId) || MOCK_SCHOOLS[0];
@@ -101,6 +102,12 @@ export const RolesPermissionsView: React.FC<RolesPermissionsViewProps> = ({
       <div className="w-full bg-[#292667] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#3b82f6] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="flex items-center gap-3 relative z-10">
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#F05A28] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
+             </button>
+           )}
            <div className="p-2.5 bg-[#3b82f6] rounded-lg text-white shadow-lg rotate-3">
              <ShieldCheck size={22} strokeWidth={3} />
            </div>

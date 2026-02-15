@@ -39,111 +39,21 @@ const Logo = ({ className = "" }: { className?: string }) => (
   </div>
 );
 
-/**
- * Activation Modal for Teachers and School Admins
- */
-const ActivationModal = ({ onClose, onConfirm, roleName }: { onClose: () => void, onConfirm: () => void, roleName: string }) => {
-  const [identity] = useState({ 
-    school: 'EDULIGHT SCHOOL', 
-    firstName: 'JANE', 
-    lastName: 'SMITH' 
-  });
-  const [confirmed, setConfirmed] = useState(false);
-  const [privacyAgreed, setPrivacyAgreed] = useState(false);
-
-  const isValid = confirmed && privacyAgreed;
-
-  return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white rounded-[3.5rem] w-full max-w-xl shadow-2xl border-t-[15px] border-[#F05A28] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative max-h-[95vh]">
-        <div className="p-10 border-b border-slate-100 bg-slate-50/50 shrink-0">
-          <div className="flex items-start justify-between relative z-10">
-            <div className="flex items-center gap-6">
-              <div className="p-5 bg-[#304B9E] text-white rounded-3xl shadow-2xl rotate-3 border-b-4 border-black/10">
-                <ShieldCheck size={32} strokeWidth={3} />
-              </div>
-              <div>
-                <h2 className="text-3xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Identity Check</h2>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">{roleName} Portal Verification</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="p-3 bg-white text-slate-300 hover:text-[#ec2027] transition-all rounded-2xl shadow-md border border-slate-100 active:scale-90">
-              <X size={24} strokeWidth={4} />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-10 scrollbar-hide space-y-8">
-          <div className="grid grid-cols-1 gap-6">
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Institution</label>
-                <input readOnly className="w-full bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100 font-black text-[#304B9E] text-sm uppercase shadow-inner" value={identity.school} />
-             </div>
-             <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">First Name</label>
-                   <input readOnly className="w-full bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100 font-black text-[#304B9E] text-sm uppercase shadow-inner" value={identity.firstName} />
-                </div>
-                <div className="space-y-2">
-                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
-                   <input readOnly className="w-full bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100 font-black text-[#304B9E] text-sm uppercase shadow-inner" value={identity.lastName} />
-                </div>
-             </div>
-          </div>
-
-          <div className="space-y-4">
-             <label className="group flex items-start gap-5 p-6 bg-blue-50/50 rounded-3xl border-2 border-indigo-100 cursor-pointer hover:bg-indigo-50 transition-all">
-                <input type="checkbox" className="mt-1 w-6 h-6 rounded-lg border-2 border-indigo-200 accent-[#00a651] cursor-pointer" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-                <p className="text-[11px] font-bold text-slate-700 leading-relaxed uppercase tracking-tight">I confirm my identity and institution are correctly assigned.</p>
-             </label>
-             <label className="group flex items-start gap-5 p-6 bg-slate-50 rounded-3xl border-2 border-slate-100 cursor-pointer hover:bg-slate-100 transition-all">
-                <input type="checkbox" className="mt-1 w-6 h-6 rounded-lg border-2 border-slate-200 accent-[#304B9E] cursor-pointer" checked={privacyAgreed} onChange={(e) => setPrivacyAgreed(e.target.checked)} />
-                <p className="text-[11px] font-bold text-slate-700 leading-relaxed uppercase tracking-tight">I agree to the Digital Information Hub Data Usage Protocol.</p>
-             </label>
-          </div>
-        </div>
-
-        <div className="p-10 border-t border-slate-100 bg-white shrink-0 flex gap-6">
-          <button onClick={onClose} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 active:scale-95 transition-all">Back</button>
-          <button onClick={onConfirm} disabled={!isValid} className={`flex-[2] py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all border-b-6 border-black/10 active:scale-95 ${isValid ? 'bg-[#00a651] text-white hover:bg-[#304B9E]' : 'bg-slate-100 text-slate-300'}`}>Authorize Hub</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const LandingPageView: React.FC<LandingPageViewProps> = ({ onLogin }) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.TEACHER);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [credentials, setCredentials] = useState({ user: '', pass: '' });
 
   const handleInitialProceed = (e: React.FormEvent) => {
     e.preventDefault();
     if (!credentials.user || !credentials.pass) return;
-    if (selectedRole === UserRole.STUDENT) {
-      if (onLogin) onLogin(selectedRole);
-    } else {
-      setShowAuthModal(true);
-    }
-  };
-
-  const handleFinalConfirm = () => {
-    setShowAuthModal(false);
+    // Bypassed activation modal for immediate entry
     if (onLogin) onLogin(selectedRole);
   };
 
   return (
     <div className="min-h-full w-full bg-slate-50 flex flex-col items-center justify-start py-12 md:py-20 px-6 relative overflow-y-auto scrollbar-hide font-sans">
       
-      {showAuthModal && (
-        <ActivationModal 
-          roleName={selectedRole === UserRole.TEACHER ? 'Teacher' : 'Administrator'} 
-          onClose={() => setShowAuthModal(false)} 
-          onConfirm={handleFinalConfirm} 
-        />
-      )}
-
       {/* Decorative Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#304B9E]/5 blur-[120px] rounded-full animate-pulse"></div>

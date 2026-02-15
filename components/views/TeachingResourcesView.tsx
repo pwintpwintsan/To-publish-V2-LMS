@@ -14,11 +14,13 @@ import {
   Eye,
   BookOpen,
   MonitorPlay,
-  Info
+  Info,
+  ChevronLeft
 } from 'lucide-react';
 
 interface TeachingResourcesViewProps {
   checkPermission?: (category: any, action: string) => boolean;
+  onBack?: () => void;
 }
 
 const ResourcePreviewModal = ({ resource, onClose, canDownload, onDownload }: { 
@@ -161,7 +163,7 @@ const UploadAssetModal = ({ onClose, onUpload }: { onClose: () => void, onUpload
   );
 };
 
-export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ checkPermission }) => {
+export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ checkPermission, onBack }) => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [previewResource, setPreviewResource] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -220,6 +222,12 @@ export const TeachingResourcesView: React.FC<TeachingResourcesViewProps> = ({ ch
       <div className="w-full bg-[#304B9E] rounded-xl p-4 md:p-5 text-white shadow-xl border-b-6 border-[#F05A28] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
         <div className="flex items-center gap-3 relative z-10">
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#F05A28] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Library</span>
+             </button>
+           )}
            <div className="p-2.5 bg-white/10 rounded-lg text-white shadow-xl rotate-3">
              <FileSearch size={22} strokeWidth={3} />
            </div>

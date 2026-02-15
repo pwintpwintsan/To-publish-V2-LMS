@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { MOCK_SCHOOLS, MOCK_COURSES, MOCK_STUDENTS, MOCK_CLASSES } from '../../constants.tsx';
 import { School, Course, Student, UserRole } from '../../types.ts';
 import { 
@@ -28,7 +29,9 @@ import {
   BookOpen,
   Database,
   Minus,
-  Package
+  Package,
+  Settings2,
+  Unlock
 } from 'lucide-react';
 
 interface CenterDetailViewProps {
@@ -47,6 +50,35 @@ const EXTENDED_MOCK_STUDENTS = [
   { id: 's4', username: '1000004', firstName: 'Su', lastName: 'Su', status: 'active', attendance: 30, finalGrade: 95 },
   { id: 's5', username: '1000005', firstName: 'Lin', lastName: 'Htut', status: 'active', attendance: 22, finalGrade: 72 },
 ];
+
+/**
+ * Modern Access Toggle Switch
+ */
+const AccessToggle = ({ active, onToggle, label, size = 'md', disabled = false }: { active: boolean, onToggle: () => void, label?: string, size?: 'sm' | 'md' | 'lg', disabled?: boolean }) => {
+  const dims = size === 'sm' ? 'w-10 h-5' : size === 'lg' ? 'w-16 h-8' : 'w-12 h-6';
+  const circle = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
+  const translate = size === 'sm' ? 'translate-x-5' : size === 'lg' ? 'translate-x-8' : 'translate-x-6';
+
+  return (
+    <div className={`flex items-center gap-3 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      <div className="flex flex-col items-center">
+        {label && <span className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${active ? 'text-[#00a651]' : 'text-slate-400'}`}>{label}</span>}
+        <button 
+          disabled={disabled}
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          className={`${dims} rounded-full relative transition-all duration-300 shadow-inner group ${active ? 'bg-[#00a651]' : 'bg-slate-200'} ${disabled ? 'grayscale' : ''}`}
+        >
+          <div className={`absolute top-0.5 left-0.5 ${circle} bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center ${active ? translate : 'translate-x-0'}`}>
+            {active ? <Check size={8} className="text-[#00a651]" strokeWidth={4} /> : <X size={8} className="text-slate-300" strokeWidth={4} />}
+          </div>
+        </button>
+        <span className={`text-[7px] font-black uppercase tracking-tighter mt-1 ${active ? 'text-[#00a651]' : 'text-slate-400'}`}>
+          {active ? 'ON' : 'OFF'}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Modal to add more IDs and seats (Capacity Expansion)
@@ -470,9 +502,24 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
   const [editingStudent, setEditingStudent] = useState<any | null>(null);
   const [isAddSeatsModalOpen, setIsAddSeatsModalOpen] = useState(false);
 
-  const approvedCourses = MOCK_COURSES.filter(c => school.approvedCourseIds?.includes(c.id));
+  // Local state for courses to support immediate UI feedback on toggles
+  const [localCourses, setLocalCourses] = useState<Course[]>(() => {
+    const saved = localStorage.getItem('ubook_courses_v7');
+    return saved ? JSON.parse(saved) : MOCK_COURSES;
+  });
+
+  const approvedCourses = useMemo(() => localCourses.filter(c => school.approvedCourseIds?.includes(c.id)), [localCourses, school.approvedCourseIds]);
   
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
+  const isSchoolAdmin = activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN;
+  const isAdmin = isMainAdmin || isSchoolAdmin;
+
+  const toggleCourseAccess = (id: string) => {
+    if (!isAdmin) return;
+    const updated = localCourses.map(c => c.id === id ? { ...c, isPublished: !c.isPublished } : c);
+    setLocalCourses(updated);
+    localStorage.setItem('ubook_courses_v7', JSON.stringify(updated));
+  };
 
   const handleUpdateStudentCourse = (newCourseId: string) => {
     alert(`Learner ${editingStudent.firstName} enrollment updated to ${MOCK_COURSES.find(c => c.id === newCourseId)?.name}`);
@@ -536,8 +583,9 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
       <div className="w-full bg-[#304B9E] rounded-[2.5rem] p-4 md:p-6 text-white shadow-xl border-b-[10px] border-[#F05A28] flex flex-col gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
         <div className="flex items-center gap-6 relative z-10">
-           <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl text-white shadow-xl hover:bg-[#F05A28] transition-all group border-2 border-white/10 active:scale-90 flex-shrink-0">
+           <button onClick={onBack} className="p-2.5 bg-slate-50 text-[#304B9E] rounded-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100 flex items-center gap-2 pr-4">
               <ChevronLeft size={24} strokeWidth={4} />
+              <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back library</span>
            </button>
            <div className="flex-1">
               <h2 className="text-xl font-black uppercase tracking-tighter leading-none mb-3">Hub <span className="text-[#F05A28]">Profile</span></h2>
@@ -612,10 +660,26 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
                         <h4 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter group-hover:text-[#F05A28] transition-colors">{course.name}</h4>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-tight line-clamp-1 mt-1">{course.description || "Course syllabus detail."}</p>
                      </div>
-                     <div className="flex items-center gap-3 shrink-0">
+                     <div className="flex items-center gap-6 shrink-0">
+                        {isAdmin && (
+                          <div className="bg-slate-50 px-4 py-3 rounded-2xl border border-slate-100 shadow-inner flex items-center gap-3">
+                             <AccessToggle 
+                                active={!!course.isPublished} 
+                                onToggle={() => toggleCourseAccess(course.id)} 
+                                size="md" 
+                                label="VISIBILITY" 
+                             />
+                          </div>
+                        )}
                         <button onClick={() => onPreviewCourse(course.id)} className="px-6 py-3 bg-slate-50 text-[#304B9E] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all">Preview</button>
-                        {isMainAdmin && (
-                           <button onClick={() => onManageCourse(course.id)} className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-xl"><Edit3 size={20} strokeWidth={3} /></button>
+                        {isAdmin && (
+                           <button 
+                             onClick={() => onManageCourse(course.id)} 
+                             className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-xl"
+                             title={isMainAdmin ? "Edit Syllabus" : "Manage Access Control"}
+                           >
+                             {isMainAdmin ? <Edit3 size={20} strokeWidth={3} /> : <Settings2 size={20} strokeWidth={3} />}
+                           </button>
                         )}
                      </div>
                   </div>

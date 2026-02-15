@@ -18,7 +18,10 @@ import {
   Library,
   ArrowRight,
   Edit3,
-  Settings2
+  Settings2,
+  Check,
+  ChevronLeft,
+  ArrowUpDown
 } from 'lucide-react';
 import { MOCK_COURSES } from '../../constants.tsx';
 
@@ -26,13 +29,47 @@ interface MyClassesViewProps {
   teacher: Teacher;
   classes: ClassInfo[];
   activeRole: UserRole;
+  filterText: string;
+  onFilterChange: (text: string) => void;
+  sortOrder: 'name' | 'newest';
+  onSortChange: (sort: 'name' | 'newest') => void;
   onEnterClass: (id: string) => void;
   onEnterCenter: (id: string) => void;
   onEnterCourse: (id: string) => void;
   onEditCourse?: (id: string) => void;
   onAddBranch: () => void;
   onPurchaseRedirect?: () => void;
+  onBack?: () => void;
 }
+
+/**
+ * Modern Access Toggle Switch with clear ON/OFF state indicators
+ */
+const AccessToggle = ({ active, onToggle, label, size = 'md', disabled = false }: { active: boolean, onToggle: () => void, label?: string, size?: 'sm' | 'md' | 'lg', disabled?: boolean }) => {
+  const dims = size === 'sm' ? 'w-10 h-5' : size === 'lg' ? 'w-16 h-8' : 'w-12 h-6';
+  const circle = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
+  const translate = size === 'sm' ? 'translate-x-5' : size === 'lg' ? 'translate-x-8' : 'translate-x-6';
+
+  return (
+    <div className={`flex items-center gap-3 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      <div className="flex flex-col items-center">
+        {label && <span className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${active ? 'text-[#00a651]' : 'text-slate-400'}`}>{label}</span>}
+        <button 
+          disabled={disabled}
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          className={`${dims} rounded-full relative transition-all duration-300 shadow-inner group ${active ? 'bg-[#00a651]' : 'bg-slate-200'} ${disabled ? 'grayscale' : ''}`}
+        >
+          <div className={`absolute top-0.5 left-0.5 ${circle} bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center ${active ? translate : 'translate-x-0'}`}>
+            {active ? <Check size={8} className="text-[#00a651]" strokeWidth={4} /> : <X size={8} className="text-slate-300" strokeWidth={4} />}
+          </div>
+        </button>
+        <span className={`text-[7px] font-black uppercase tracking-tighter mt-1 ${active ? 'text-[#00a651] scale-110' : 'text-slate-400'}`}>
+          {active ? 'ON' : 'OFF'}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const UnlockModal = ({ courseName, onClose, onPurchase }: { courseName: string, onClose: () => void, onPurchase?: () => void }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
@@ -70,20 +107,54 @@ const UnlockModal = ({ courseName, onClose, onPurchase }: { courseName: string, 
   </div>
 );
 
-export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, activeRole, onEnterClass, onEnterCenter, onEnterCourse, onEditCourse, onAddBranch, onPurchaseRedirect }) => {
-  const [filterText, setFilterText] = useState('');
+export const MyClassesView: React.FC<MyClassesViewProps> = ({ 
+  teacher, 
+  classes, 
+  activeRole, 
+  onEnterClass, 
+  onEnterCenter, 
+  onEnterCourse, 
+  onEditCourse, 
+  onAddBranch, 
+  onPurchaseRedirect, 
+  onBack,
+  filterText,
+  onFilterChange,
+  sortOrder,
+  onSortChange
+}) => {
   const [unlockCourse, setUnlockCourse] = useState<string | null>(null);
   
+  const [localCourses, setLocalCourses] = useState<Course[]>(() => {
+    const saved = localStorage.getItem('ubook_courses_v7');
+    return saved ? JSON.parse(saved) : MOCK_COURSES;
+  });
+  
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
-  const isStaff = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.TEACHER;
-  const isAdmin = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN;
+  const isSchoolAdmin = activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN;
+  const isAdmin = isMainAdmin || isSchoolAdmin;
+
+  const toggleCourseAccess = (id: string) => {
+    if (!isAdmin) return;
+    const updated = localCourses.map(c => c.id === id ? { ...c, isPublished: !c.isPublished } : c);
+    setLocalCourses(updated);
+    localStorage.setItem('ubook_courses_v7', JSON.stringify(updated));
+  };
 
   const filteredCourses = useMemo(() => {
-    return MOCK_COURSES.filter(c => {
+    let result = localCourses.filter(c => {
       const matchesSearch = c.name.toLowerCase().includes(filterText.toLowerCase());
       return matchesSearch;
     });
-  }, [filterText]);
+
+    if (sortOrder === 'name') {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      result.sort((a, b) => (b.lastUpdated || '').localeCompare(a.lastUpdated || ''));
+    }
+
+    return result;
+  }, [filterText, localCourses, sortOrder]);
 
   return (
     <div className="h-full flex flex-col gap-4 overflow-hidden">
@@ -93,12 +164,18 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
       <div className="w-full bg-[#304B9E] rounded-2xl p-5 md:p-6 text-white shadow-xl border-b-8 border-[#ec2027] flex flex-col md:flex-row items-center justify-between gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
         <div className="flex items-center gap-4 relative z-10">
-           <div className={`p-3 md:p-4 rounded-xl shadow-lg ${isAdmin ? 'bg-[#ec2027]' : 'bg-[#F05A28] text-[#304B9E]'}`}>
-             {isAdmin ? <Library size={28} strokeWidth={3} /> : <BookOpen size={28} strokeWidth={3} />}
+           {onBack && (
+             <button onClick={onBack} className="p-3 bg-white/10 rounded-xl text-white shadow-lg hover:bg-[#ec2027] transition-all active:scale-90 border-2 border-white/10 flex items-center gap-2 mr-2">
+               <ChevronLeft size={20} strokeWidth={4} />
+               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Back to Hub</span>
+             </button>
+           )}
+           <div className={`p-3 md:p-4 rounded-xl shadow-lg ${isMainAdmin ? 'bg-[#ec2027]' : 'bg-[#F05A28] text-[#304B9E]'}`}>
+             {isMainAdmin ? <Library size={28} strokeWidth={3} /> : <BookOpen size={28} strokeWidth={3} />}
            </div>
            <div>
              <h2 className="text-xl md:text-2xl font-black leading-none tracking-tight uppercase">
-               Course <span className="text-[#F05A28]">{isAdmin ? 'Lists' : 'Portal'}</span>
+               Course <span className="text-[#F05A28]">{isMainAdmin ? 'Lists' : 'Portal'}</span>
              </h2>
              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">U Book Store Global Catalog</p>
            </div>
@@ -114,7 +191,7 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
                 <p className="text-2xl font-black text-[#00a651] leading-none mb-0.5">85%</p>
                 <p className="text-[8px] font-black uppercase text-white/40 tracking-widest">Global Progress</p>
              </div>
-             {isAdmin && (
+             {isMainAdmin && (
                <button onClick={() => {}} className="p-2.5 bg-[#F05A28] text-[#304B9E] rounded-lg font-black shadow-lg hover:scale-105 active:scale-95 transition-all ml-2" title="Create Course">
                  <Plus size={20} strokeWidth={4} />
                </button>
@@ -129,20 +206,30 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
             type="text" 
             placeholder="Search course lists..."
             value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
+            onChange={(e) => onFilterChange(e.target.value)}
             className="bg-transparent text-sm font-black text-[#304B9E] outline-none w-full placeholder:text-slate-200 uppercase"
           />
         </div>
+        
+        <div className="flex items-center gap-2">
+           <button 
+             onClick={() => onSortChange(sortOrder === 'name' ? 'newest' : 'name')}
+             className="px-4 py-2 bg-slate-50 text-[#304B9E] rounded-xl border border-slate-100 font-black text-[9px] uppercase tracking-widest flex items-center gap-2 hover:bg-white transition-all shadow-sm"
+           >
+             <ArrowUpDown size={14} />
+             Sort: {sortOrder === 'name' ? 'Alphabetical' : 'Newest'}
+           </button>
+        </div>
       </div>
 
-      {/* Full Length Card Layout */}
+      {/* Full Length Card Layout with Access Toggles */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="flex flex-col gap-4 pb-10">
           {filteredCourses.map((course, idx) => (
             <div 
               key={course.id} 
               onClick={() => onEnterCourse(course.id)} 
-              className="bg-white rounded-[2rem] shadow-md border-2 border-transparent hover:border-[#ec2027] transition-all group flex flex-col md:flex-row overflow-hidden cursor-pointer w-full"
+              className="bg-white rounded-[2rem] shadow-md border-2 border-transparent hover:border-[#ec2027] transition-all group flex flex-col md:flex-row overflow-hidden cursor-pointer w-full relative"
             >
               <div className="w-full md:w-80 lg:w-96 aspect-video md:aspect-auto relative overflow-hidden bg-slate-100 shrink-0">
                 <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={course.name} />
@@ -160,6 +247,16 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-tight line-clamp-1">{course.description || "Comprehensive syllabus for digital learners."}</p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
+                     {isAdmin && (
+                       <div className="bg-slate-50 px-5 py-2.5 rounded-2xl flex items-center gap-4 border border-slate-100 mr-2 shadow-inner">
+                          <AccessToggle 
+                            active={!!course.isPublished} 
+                            onToggle={() => toggleCourseAccess(course.id)} 
+                            size="md" 
+                            label="VISIBILITY" 
+                          />
+                       </div>
+                     )}
                      <div className="bg-slate-50 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-100">
                         <Clock size={14} className="text-[#ec2027]" strokeWidth={3} />
                         <span className="text-xs font-black text-[#304B9E]">{course.duration || '20h'}</span>
@@ -182,13 +279,6 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
                       <p className="text-xs font-black text-[#304B9E]">1.2k+</p>
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-3 hidden sm:flex">
-                    <div className="p-2 bg-white rounded-lg text-[#f43f5e] shadow-sm"><Sparkles size={16} strokeWidth={3} /></div>
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Level</p>
-                      <p className="text-xs font-black text-[#304B9E]">{course.level || 'Foundation'}</p>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
@@ -200,7 +290,7 @@ export const MyClassesView: React.FC<MyClassesViewProps> = ({ teacher, classes, 
                         View Course Syllabus <ArrowRight size={16} strokeWidth={4} className="group-hover/btn:translate-x-1 transition-transform" />
                       </button>
                       
-                      {isStaff && onEditCourse && (
+                      {isAdmin && onEditCourse && (
                         <button 
                           className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-[#304B9E] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#304B9E] hover:text-white transition-all border border-indigo-100 active:scale-95"
                           onClick={(e) => { e.stopPropagation(); onEditCourse(course.id); }}

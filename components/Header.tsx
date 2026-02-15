@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Menu, X, ShieldAlert, GraduationCap, ShieldCheck, LogOut, LogIn } from 'lucide-react';
+import { Menu, X, ShieldAlert, GraduationCap, ShieldCheck, LogOut, LogIn, Home, Fingerprint } from 'lucide-react';
 import { UserRole } from '../types.ts';
 
 interface HeaderProps {
@@ -13,6 +13,8 @@ interface HeaderProps {
   onRoleChange: (role: UserRole) => void;
   onLogout: () => void;
   onLogin: () => void;
+  onGoHome: () => void;
+  onGoAccessControl: () => void;
 }
 
 export const LogoMark = ({ className = "" }: { className?: string }) => (
@@ -44,33 +46,73 @@ const Logo = () => (
       <LogoMark className="w-8 h-8" />
     </div>
     <div className="flex flex-col min-w-0">
-      <span className="text-[10px] font-bold text-[#304B9E] leading-none tracking-tight uppercase">Digital Information</span>
-      <span className="text-[10px] font-bold text-[#304B9E] leading-none tracking-tight uppercase">Resources</span>
+      <span className="text-[10px] font-bold text-[#304B9E] leading-none tracking-tight uppercase">U Book Store</span>
+      <span className="text-[10px] font-bold text-[#304B9E] leading-none tracking-tight uppercase">Digital Resources</span>
       <span className="text-[7px] font-medium text-[#F05A28] uppercase tracking-widest leading-none mt-0.5">LEARNING HUB</span>
     </div>
   </div>
 );
 
-export const Header: React.FC<HeaderProps> = ({ schoolName, teacherCode, activeRole, isLoggedIn, isSidebarOpen, onToggleSidebar, onRoleChange, onLogout, onLogin }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  schoolName, 
+  teacherCode, 
+  activeRole, 
+  isLoggedIn, 
+  isSidebarOpen, 
+  onToggleSidebar, 
+  onRoleChange, 
+  onLogout, 
+  onLogin, 
+  onGoHome,
+  onGoAccessControl
+}) => {
   const roles = [
     { id: UserRole.MAIN_CENTER, label: 'Main Center Admin', icon: ShieldAlert, color: 'text-[#ec2027]' },
     { id: UserRole.SUPER_ADMIN, label: 'School Admin', icon: ShieldCheck, color: 'text-[#3b82f6]' },
     { id: UserRole.TEACHER, label: 'Teacher', icon: GraduationCap, color: 'text-[#304B9E]' },
   ];
 
+  const isAdmin = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN;
+
   return (
     <header className="sticky top-0 z-[60] w-full bg-white border-b border-slate-100 flex items-center shrink-0 h-16">
       <div className="max-w-[1600px] mx-auto px-6 w-full flex justify-between items-center">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {isLoggedIn && (
-            <button 
-              onClick={onToggleSidebar}
-              className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 active:scale-95 transition-all"
-            >
-              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={onToggleSidebar}
+                className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 active:scale-95 transition-all"
+                aria-label="Toggle Sidebar"
+              >
+                {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100/50 rounded-2xl border border-slate-100">
+                <button 
+                  onClick={onGoHome}
+                  className="px-4 py-2 bg-white text-[#304B9E] rounded-xl shadow-sm hover:bg-[#304B9E] hover:text-white transition-all active:scale-90 border border-slate-100 flex items-center gap-2 group"
+                  title="Back to Home Dashboard"
+                >
+                  <Home size={16} strokeWidth={3} />
+                  <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Back Home</span>
+                </button>
+                
+                {isAdmin && (
+                  <button 
+                    onClick={onGoAccessControl}
+                    className="px-4 py-2 bg-white text-[#F05A28] rounded-xl shadow-sm hover:bg-[#F05A28] hover:text-white transition-all active:scale-90 border border-slate-100 flex items-center gap-2 group"
+                    title="Toggle Access Control for Curriculum Nodes"
+                  >
+                    <Fingerprint size={16} strokeWidth={3} />
+                    <span className="text-[9px] font-black uppercase tracking-widest hidden md:inline">Access Control</span>
+                  </button>
+                )}
+              </div>
+            </div>
           )}
-          <Logo />
+          <button onClick={onGoHome} className="hover:opacity-80 transition-opacity ml-2">
+            <Logo />
+          </button>
         </div>
 
         {isLoggedIn ? (
