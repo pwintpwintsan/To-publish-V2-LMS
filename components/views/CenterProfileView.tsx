@@ -1,39 +1,35 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_SCHOOLS, MOCK_COURSES, MOCK_STUDENTS, MOCK_CLASSES, MOCK_TEACHER } from '../../constants.tsx';
-import { UserRole, Course, Student } from '../../types.ts';
+import { UserRole, Student } from '../../types.ts';
 import { 
   Building2, 
   BookOpen, 
   X, 
-  PlusCircle, 
-  Layers, 
-  Type, 
   ChevronDown,
   Search,
   MoreHorizontal,
   UserPlus,
-  BookMarked,
-  Check,
-  Tag,
   Clock,
   User,
   Users,
-  Plus as PlusIcon,
   CheckCircle2,
   Trophy,
   History,
-  TrendingUp,
-  Mail,
   Zap,
   Calendar,
-  MonitorPlay,
-  ClipboardList,
   Sparkles,
   Hash,
   LayoutGrid,
   Edit3,
-  Save
+  Save,
+  Database,
+  Minus,
+  Plus,
+  GraduationCap,
+  ShieldCheck,
+  ClipboardList,
+  RefreshCw,
+  UserCheck
 } from 'lucide-react';
 
 interface CenterProfileViewProps {
@@ -45,9 +41,17 @@ const EditStudentModal = ({ student, onClose, onSave }: { student: any, onClose:
   const [selectedCourseId, setSelectedCourseId] = useState(student.courseId || MOCK_COURSES[0].id);
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl border-t-[12px] border-[#F05A28] relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col">
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl border-t-[12px] border-[#F05A28] relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl"
+        >
           <X size={20} strokeWidth={3} />
         </button>
         <div className="text-center mb-8 shrink-0">
@@ -176,8 +180,20 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
   const [selectedStudentForProfile, setSelectedStudentForProfile] = useState<Student | any | null>(null);
   const [editingStudent, setEditingStudent] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // Dynamic capacity tracking
+  const [studentCapacity] = useState(() => {
+    const saved = localStorage.getItem('ubook_student_capacity_7244');
+    return saved ? parseInt(saved) : 300;
+  });
+  const [teacherCapacity] = useState(() => {
+    const saved = localStorage.getItem('ubook_teacher_capacity_7244');
+    return saved ? parseInt(saved) : 15;
+  });
+
   const isAdmin = activeRole === UserRole.MAIN_CENTER || activeRole === UserRole.SUPER_ADMIN;
+  const isMainCenterAdmin = activeRole === UserRole.MAIN_CENTER;
 
   const schoolStats = {
     name: 'EDULIGHT SCHOOL',
@@ -192,14 +208,20 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
     setEditingStudent(null);
   };
 
-  // Dynamic ID based on role
+  const handleRefreshRegistry = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      alert('Registry synchronization complete. Data is now fresh.');
+    }, 1200);
+  };
+
   const getRoleIdLabel = () => {
     if (activeRole === UserRole.TEACHER) return `Teacher ID: ${MOCK_TEACHER.teacherCode}`;
     if (activeRole === UserRole.SUPER_ADMIN || activeRole === UserRole.SCHOOL_ADMIN) return `Admin ID: ADM-${schoolStats.id}`;
     return `Center ID: HQ-${schoolStats.id}`;
   };
 
-  // Flattened data for ONE TABLE ONLY
   const tableData = useMemo(() => {
     return MOCK_STUDENTS.map(s => {
       const cls = MOCK_CLASSES.find(c => c.students.some(st => st.id === s.id));
@@ -260,35 +282,35 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative z-10 border-t border-white/10 pt-6">
            <div className="flex flex-col gap-1 px-2">
               <span className="text-[7px] font-black uppercase text-[#F05A28] tracking-[0.2em] flex items-center gap-1.5">
-                 <Building2 size={10} strokeWidth={3} /> School Name
+                 <Building2 size={10} strokeWidth={3} /> Hub Identity
               </span>
               <p className="text-[11px] font-black uppercase tracking-tight truncate">{schoolStats.name}</p>
            </div>
            
            <div className="flex flex-col gap-1 px-2 border-l border-white/5">
               <span className="text-[7px] font-black uppercase text-[#F05A28] tracking-[0.2em] flex items-center gap-1.5">
-                 <Hash size={10} strokeWidth={3} /> School ID
+                 <GraduationCap size={10} strokeWidth={3} /> Learner Limit
               </span>
-              <p className="text-[11px] font-black uppercase tracking-tight">{schoolStats.id}</p>
+              <p className="text-[11px] font-black uppercase tracking-tight">{studentCapacity} Nodes</p>
            </div>
 
            <div className="flex flex-col gap-1 px-2 border-l border-white/5">
               <span className="text-[7px] font-black uppercase text-[#F05A28] tracking-[0.2em] flex items-center gap-1.5">
-                 <BookMarked size={10} strokeWidth={3} /> Registered Courses
+                 <UserCheck size={10} strokeWidth={3} /> Staff Limit
               </span>
-              <p className="text-[11px] font-black uppercase tracking-tight">{schoolStats.coursesCount} Programs</p>
+              <p className="text-[11px] font-black uppercase tracking-tight">{teacherCapacity} Nodes</p>
            </div>
 
            <div className="flex flex-col gap-1 px-2 border-l border-white/5">
               <span className="text-[7px] font-black uppercase text-[#F05A28] tracking-[0.2em] flex items-center gap-1.5">
-                 <LayoutGrid size={10} strokeWidth={3} /> Class Lists
+                 <LayoutGrid size={10} strokeWidth={3} /> Class Hubs
               </span>
-              <p className="text-[11px] font-black uppercase tracking-tight">{schoolStats.classesCount} Active Hubs</p>
+              <p className="text-[11px] font-black uppercase tracking-tight">{schoolStats.classesCount} Active</p>
            </div>
 
            <div className="flex flex-col gap-1 px-2 border-l border-white/5">
               <span className="text-[7px] font-black uppercase text-[#F05A28] tracking-[0.2em] flex items-center gap-1.5">
-                 <Calendar size={10} strokeWidth={3} /> Activation Date
+                 <Calendar size={10} strokeWidth={3} /> Term Start
               </span>
               <p className="text-[11px] font-black uppercase tracking-tight">{schoolStats.activationDate}</p>
            </div>
@@ -308,21 +330,41 @@ export const CenterProfileView: React.FC<CenterProfileViewProps> = ({ activeRole
           />
         </div>
         {isAdmin && (
-           <button 
-             onClick={onAddLearner}
-             className="px-6 py-2.5 bg-[#F05A28] text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl hover:bg-[#304B9E] transition-all active:scale-95 border-b-4 border-black/10 flex items-center gap-2"
-           >
-              <UserPlus size={14} strokeWidth={3} /> Add Learner
-           </button>
+           <div className="flex items-center gap-2">
+              <button 
+                onClick={onAddLearner}
+                className="px-6 py-2.5 bg-[#304B9E] text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl hover:bg-[#3b82f6] transition-all active:scale-95 border-b-4 border-black/10 flex items-center gap-2"
+              >
+                  <UserPlus size={14} strokeWidth={3} /> Add Learner
+              </button>
+           </div>
         )}
       </div>
 
       {/* Master Unified Learner Table */}
       <div className="flex-1 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col mb-4">
-        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 shrink-0">
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 shrink-0 flex items-center justify-between">
            <h3 className="text-sm font-black text-[#304B9E] uppercase tracking-tighter flex items-center gap-2">
               <Users size={18} strokeWidth={3} className="text-[#F05A28]" /> Master School Roster
            </h3>
+           <div className="flex items-center gap-4">
+              {/* Main Center Admin Shortcut Buttons */}
+              {isMainCenterAdmin && (
+                <div className="flex items-center gap-2">
+                   <button 
+                     onClick={handleRefreshRegistry}
+                     className="p-2 bg-white text-[#304B9E] border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-all active:scale-90 group"
+                     title="Refresh Registry Data"
+                   >
+                      <RefreshCw size={16} strokeWidth={3} className={isRefreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+                   </button>
+                </div>
+              )}
+              <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-slate-100 shadow-sm">
+                 <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest">Global Sync</span>
+                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+              </div>
+           </div>
         </div>
 
         <div className="flex-1 overflow-x-auto scrollbar-hide">

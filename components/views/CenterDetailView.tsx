@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MOCK_SCHOOLS, MOCK_COURSES, MOCK_STUDENTS, MOCK_CLASSES } from '../../constants.tsx';
 import { School, Course, Student, UserRole } from '../../types.ts';
@@ -13,7 +12,7 @@ import {
   LayoutGrid,
   Clock,
   User,
-  Plus as PlusIcon,
+  Plus,
   Search,
   School as SchoolIcon,
   Tag,
@@ -26,7 +25,10 @@ import {
   ClipboardList,
   MonitorPlay,
   Save,
-  BookOpen
+  BookOpen,
+  Database,
+  Minus,
+  Package
 } from 'lucide-react';
 
 interface CenterDetailViewProps {
@@ -45,6 +47,68 @@ const EXTENDED_MOCK_STUDENTS = [
   { id: 's4', username: '1000004', firstName: 'Su', lastName: 'Su', status: 'active', attendance: 30, finalGrade: 95 },
   { id: 's5', username: '1000005', firstName: 'Lin', lastName: 'Htut', status: 'active', attendance: 22, finalGrade: 72 },
 ];
+
+/**
+ * Modal to add more IDs and seats (Capacity Expansion)
+ */
+const AddSeatsModal = ({ onClose, onSave, schoolName }: { onClose: () => void, onSave: (s: number, t: number) => void, schoolName: string }) => {
+  const [studentAdd, setStudentAdd] = useState(10);
+  const [teacherAdd, setTeacherAdd] = useState(2);
+
+  return (
+    <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl border-t-[12px] border-[#F05A28] p-10 flex flex-col gap-8 animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <div className="text-center">
+           <div className="w-16 h-16 bg-blue-50 text-[#304B9E] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-indigo-100 rotate-3">
+              <Database size={32} strokeWidth={3} />
+           </div>
+           <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Expand Hub Capacity</h3>
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Provision Additional Resources for {schoolName}</p>
+        </div>
+
+        <div className="space-y-6">
+           <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Custom Student IDs</label>
+                 <span className="text-[10px] font-black text-[#F05A28] uppercase bg-orange-50 px-2 py-0.5 rounded border border-orange-100">+{studentAdd} Seats</span>
+              </div>
+              <div className="flex items-center gap-4">
+                 <button onClick={() => setStudentAdd(Math.max(1, studentAdd - 5))} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#F05A28] hover:border-[#F05A28] hover:shadow-lg transition-all active:scale-90 shadow-sm"><Minus size={20} strokeWidth={4} /></button>
+                 <div className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 text-center shadow-inner">
+                    <span className="text-2xl font-black text-[#304B9E]">{studentAdd}</span>
+                 </div>
+                 <button onClick={() => setStudentAdd(studentAdd + 5)} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#F05A28] hover:border-[#F05A28] hover:shadow-lg transition-all active:scale-90 shadow-sm"><Plus size={20} strokeWidth={4} /></button>
+              </div>
+           </div>
+
+           <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Custom Teacher Seats</label>
+                 <span className="text-[10px] font-black text-[#3b82f6] uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">+{teacherAdd} Staff</span>
+              </div>
+              <div className="flex items-center gap-4">
+                 <button onClick={() => setTeacherAdd(Math.max(1, teacherAdd - 1))} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#3b82f6] hover:border-[#3b82f6] hover:shadow-lg transition-all active:scale-90 shadow-sm"><Minus size={20} strokeWidth={4} /></button>
+                 <div className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 text-center shadow-inner">
+                    <span className="text-2xl font-black text-[#304B9E]">{teacherAdd}</span>
+                 </div>
+                 <button onClick={() => setTeacherAdd(teacherAdd + 1)} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#3b82f6] hover:border-[#3b82f6] hover:shadow-lg transition-all active:scale-90 shadow-sm"><Plus size={20} strokeWidth={4} /></button>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex gap-4 pt-2">
+           <button onClick={onClose} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95">Cancel</button>
+           <button 
+             onClick={() => onSave(studentAdd, teacherAdd)}
+             className="flex-[2] py-5 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#00a651] transition-all border-b-6 border-black/10 active:scale-95 flex items-center justify-center gap-2"
+           >
+              <CheckCircle2 size={18} strokeWidth={3} /> Commit Expansion
+           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const EditStudentModal = ({ student, onClose, onSave }: { student: any, onClose: () => void, onSave: (courseId: string) => void }) => {
   const [selectedCourseId, setSelectedCourseId] = useState(student.courseId || MOCK_COURSES[0].id);
@@ -275,7 +339,7 @@ const AddStudentsModal = ({ courseName, onClose }: { courseName: string; onClose
   );
 };
 
-const MasterStudentTable = ({ courses, onAddStudent, onShowProfile, onEditStudent }: { courses: Course[], onAddStudent: (course: Course) => void, onShowProfile: (student: any) => void, onEditStudent: (student: any) => void }) => {
+const MasterStudentTable = ({ courses, onAddStudent, onShowProfile, onEditStudent, onAddSeats, isAdmin }: { courses: Course[], onAddStudent: (course: Course) => void, onShowProfile: (student: any) => void, onEditStudent: (student: any) => void, onAddSeats: () => void, isAdmin: boolean }) => {
   const flattenedData = courses.flatMap((course, cIdx) => {
     const studentCount = cIdx % 3 === 0 ? 1 : cIdx % 3 === 1 ? 2 : 0;
     const assignedStudents = EXTENDED_MOCK_STUDENTS.slice(cIdx, cIdx + studentCount);
@@ -304,80 +368,95 @@ const MasterStudentTable = ({ courses, onAddStudent, onShowProfile, onEditStuden
   });
 
   return (
-    <div className="bg-white rounded-[2.5rem] border-2 border-slate-50 shadow-xl overflow-hidden flex flex-col mb-10">
-      <div className="px-8 py-5 bg-slate-50 border-b border-slate-100 shrink-0">
-         <h3 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter flex items-center gap-2">
-            <Users size={20} className="text-[#F05A28]" strokeWidth={3} /> Master School Roster
-         </h3>
-      </div>
-      <div className="overflow-x-auto scrollbar-hide">
-        <table className="w-full text-left border-collapse min-w-[900px]">
-          <thead className="sticky top-0 bg-[#304B9E] text-white text-[10px] font-black uppercase tracking-widest z-20">
-            <tr>
-              <th className="px-10 py-6">Student Account</th>
-              <th className="px-10 py-6">ID Code</th>
-              <th className="px-10 py-6">Course Name</th>
-              <th className="px-10 py-6">Class Name</th>
-              <th className="px-10 py-6 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {flattenedData.map((row) => (
-              <tr key={row.uniqueId} className="group hover:bg-slate-50/50 transition-all">
-                <td className="px-10 py-6">
-                  {row.studentName ? (
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 overflow-hidden">
-                         <img src={`https://picsum.photos/seed/${row.studentObj?.id}/64`} className="w-full h-full object-cover" alt="" />
-                      </div>
-                      <p className="font-black text-sm text-[#304B9E] uppercase tracking-tight leading-none">{row.studentName}</p>
-                    </div>
-                  ) : (
-                    <p className="font-bold text-sm text-slate-300 uppercase tracking-widest italic opacity-60">Available Slot</p>
-                  )}
-                </td>
-                <td className="px-10 py-6">
-                  <span className="font-mono text-sm font-black text-[#F05A28] tracking-widest uppercase">{row.studentId || "---"}</span>
-                </td>
-                <td className="px-10 py-6">
-                  <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100 bg-indigo-50 text-[#304B9E]">
-                     {row.name}
-                  </span>
-                </td>
-                <td className="px-10 py-6">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{row.className}</span>
-                </td>
-                <td className="px-10 py-6 text-right">
-                  {row.studentName ? (
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => onEditStudent(row.studentObj)}
-                        className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#F05A28] hover:text-white transition-all active:scale-90"
-                        title="Edit Student"
-                      >
-                        <Edit3 size={18} strokeWidth={3} />
-                      </button>
-                      <button 
-                        onClick={() => onShowProfile(row.studentObj)}
-                        className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
-                        title="View Profile"
-                      >
-                        <User size={18} strokeWidth={3} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={() => onAddStudent(row as unknown as Course)}
-                      className="p-3 bg-[#F05A28] text-white rounded-xl shadow-md border-b-4 border-black/10 hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
-                    >
-                       <PlusIcon size={20} strokeWidth={4} />
-                    </button>
-                  )}
-                </td>
+    <div className="flex flex-col gap-4 mb-10">
+      {/* Capacity Management Button Bar */}
+      {isAdmin && (
+        <div className="w-full bg-white p-3 rounded-2xl shadow-lg border border-slate-100 flex items-center justify-end animate-in slide-in-from-top-2 duration-300">
+          <button 
+            onClick={onAddSeats}
+            className="px-8 py-3.5 bg-[#304B9E] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:bg-[#F05A28] transition-all active:scale-95 border-b-4 border-black/10 flex items-center gap-3"
+          >
+            <Database size={18} strokeWidth={3} />
+            Add Seats / IDs
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-[2.5rem] border-2 border-slate-50 shadow-xl overflow-hidden flex flex-col">
+        <div className="px-8 py-5 bg-slate-50 border-b border-slate-100 shrink-0">
+           <h3 className="text-lg font-black text-[#304B9E] uppercase tracking-tighter flex items-center gap-2">
+              <Users size={20} className="text-[#F05A28]" strokeWidth={3} /> Master School Roster
+           </h3>
+        </div>
+        <div className="overflow-x-auto scrollbar-hide">
+          <table className="w-full text-left border-collapse min-w-[900px]">
+            <thead className="sticky top-0 bg-[#304B9E] text-white text-[10px] font-black uppercase tracking-widest z-20">
+              <tr>
+                <th className="px-10 py-6">Student Account</th>
+                <th className="px-10 py-6">ID Code</th>
+                <th className="px-10 py-6">Course Name</th>
+                <th className="px-10 py-6">Class Name</th>
+                <th className="px-10 py-6 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {flattenedData.map((row) => (
+                <tr key={row.uniqueId} className="group hover:bg-slate-50/50 transition-all">
+                  <td className="px-10 py-6">
+                    {row.studentName ? (
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+                           <img src={`https://picsum.photos/seed/${row.studentObj?.id}/64`} className="w-full h-full object-cover" alt="" />
+                        </div>
+                        <p className="font-black text-sm text-[#304B9E] uppercase tracking-tight leading-none">{row.studentName}</p>
+                      </div>
+                    ) : (
+                      <p className="font-bold text-sm text-slate-300 uppercase tracking-widest italic opacity-60">Available Slot</p>
+                    )}
+                  </td>
+                  <td className="px-10 py-6">
+                    <span className="font-mono text-sm font-black text-[#F05A28] tracking-widest uppercase">{row.studentId || "---"}</span>
+                  </td>
+                  <td className="px-10 py-6">
+                    <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100 bg-indigo-50 text-[#304B9E]">
+                       {row.name}
+                    </span>
+                  </td>
+                  <td className="px-10 py-6">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{row.className}</span>
+                  </td>
+                  <td className="px-10 py-6 text-right">
+                    {row.studentName ? (
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => onEditStudent(row.studentObj)}
+                          className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#F05A28] hover:text-white transition-all active:scale-90"
+                          title="Edit Student"
+                        >
+                          <Edit3 size={18} strokeWidth={3} />
+                        </button>
+                        <button 
+                          onClick={() => onShowProfile(row.studentObj)}
+                          className="p-3 bg-white text-slate-300 rounded-xl shadow-sm border border-slate-100 hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
+                          title="View Profile"
+                        >
+                          <User size={18} strokeWidth={3} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => onAddStudent(row as unknown as Course)}
+                        className="p-3 bg-[#F05A28] text-white rounded-xl shadow-md border-b-4 border-black/10 hover:bg-[#304B9E] hover:text-white transition-all active:scale-90"
+                      >
+                         <Plus size={20} strokeWidth={4} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -389,10 +468,10 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
   const [addStudentsTarget, setAddStudentsTarget] = useState<Course | null>(null);
   const [selectedProfileStudent, setSelectedProfileStudent] = useState<any | null>(null);
   const [editingStudent, setEditingStudent] = useState<any | null>(null);
+  const [isAddSeatsModalOpen, setIsAddSeatsModalOpen] = useState(false);
 
   const approvedCourses = MOCK_COURSES.filter(c => school.approvedCourseIds?.includes(c.id));
   
-  // Teachers and School Admins cannot edit courses in the list
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
 
   const handleUpdateStudentCourse = (newCourseId: string) => {
@@ -400,9 +479,22 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
     setEditingStudent(null);
   };
 
+  const handleSaveSeats = (students: number, teachers: number) => {
+    alert(`Expansion Complete for ${school.name}!\nProvisioned ${students} new student IDs.\nIncreased teacher capacity by ${teachers} nodes.`);
+    setIsAddSeatsModalOpen(false);
+  };
+
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden animate-in slide-in-from-right duration-500">
       
+      {isAddSeatsModalOpen && (
+        <AddSeatsModal 
+           schoolName={school.name} 
+           onClose={() => setIsAddSeatsModalOpen(false)} 
+           onSave={handleSaveSeats} 
+        />
+      )}
+
       {addStudentsTarget && (
         <AddStudentsModal 
           courseName={addStudentsTarget.name} 
@@ -425,7 +517,22 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
         />
       )}
 
-      {/* Header Banner - 4 DIGIT CODE */}
+      {/* FAB quick access for seat management */}
+      {isMainAdmin && (
+        <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end gap-3 group">
+           <div className="bg-[#304B9E] text-white px-4 py-2 rounded-2xl shadow-xl font-black text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 border-b-4 border-black/10">
+              Browse Hub Seats
+           </div>
+           <button 
+             onClick={() => setIsAddSeatsModalOpen(true)}
+             className="w-16 h-16 bg-[#F05A28] text-white rounded-full shadow-[0_20px_50px_-10px_rgba(240,90,40,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-b-8 border-black/20 group animate-bounce"
+           >
+              <Plus size={32} strokeWidth={4} className="group-hover:rotate-90 transition-transform duration-500" />
+           </button>
+        </div>
+      )}
+
+      {/* Header Banner */}
       <div className="w-full bg-[#304B9E] rounded-[2.5rem] p-4 md:p-6 text-white shadow-xl border-b-[10px] border-[#F05A28] flex flex-col gap-4 flex-shrink-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl"></div>
         <div className="flex items-center gap-6 relative z-10">
@@ -487,10 +594,12 @@ export const CenterDetailView: React.FC<CenterDetailViewProps> = ({ centerId, on
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-8">
            {activeTab === 'students' ? (
               <MasterStudentTable 
+                isAdmin={isMainAdmin}
                 courses={approvedCourses} 
                 onAddStudent={(course) => setAddStudentsTarget(course)} 
                 onShowProfile={(student) => setSelectedProfileStudent(student)}
                 onEditStudent={(student) => setEditingStudent(student)}
+                onAddSeats={() => setIsAddSeatsModalOpen(true)}
               />
            ) : (
               <div className="space-y-6">

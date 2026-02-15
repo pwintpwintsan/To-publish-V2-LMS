@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MOCK_SCHOOLS } from '../../constants.tsx';
-import { UserRole } from '../../types.ts';
+import { UserRole, UserPermissions } from '../../types.ts';
 import { 
   ShieldCheck, 
   Building2, 
@@ -26,6 +26,9 @@ import {
 interface RolesPermissionsViewProps {
   activeRole: UserRole;
   onRegisterBranch: () => void;
+  // Added rolePerms and setRolePerms to props to match App.tsx usage
+  rolePerms: Record<string, UserPermissions>;
+  setRolePerms: React.Dispatch<React.SetStateAction<Record<string, UserPermissions>>>;
 }
 
 type PermissionStatus = 'yes' | 'no' | string;
@@ -39,7 +42,13 @@ interface PermissionRow {
   icon: any;
 }
 
-export const RolesPermissionsView: React.FC<RolesPermissionsViewProps> = ({ activeRole, onRegisterBranch }) => {
+// Added rolePerms and setRolePerms to destructuring to fix the prop mismatch error
+export const RolesPermissionsView: React.FC<RolesPermissionsViewProps> = ({ 
+  activeRole, 
+  onRegisterBranch,
+  rolePerms,
+  setRolePerms
+}) => {
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>(MOCK_SCHOOLS[0].id);
   const selectedSchool = MOCK_SCHOOLS.find(s => s.id === selectedSchoolId) || MOCK_SCHOOLS[0];
 

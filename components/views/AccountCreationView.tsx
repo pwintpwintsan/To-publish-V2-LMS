@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { MOCK_SCHOOLS } from '../../constants.tsx';
+import { MOCK_SCHOOLS, MOCK_COURSES } from '../../constants.tsx';
 import { UserRole } from '../../types.ts';
 import { 
   UserPlus, 
@@ -28,7 +27,13 @@ import {
   Zap,
   User,
   Filter,
-  LayoutGrid
+  LayoutGrid,
+  Plus,
+  CirclePlus,
+  Database,
+  Minus,
+  BookOpen,
+  PlusSquare
 } from 'lucide-react';
 
 interface AccountCreationViewProps {
@@ -53,7 +58,6 @@ const REGISTERED_NAME_POOL = [
   "Nanda", "Soe Soe", "Wai Wai", "Tun Tun", "Lwin Lwin"
 ];
 
-// Helper to get available IDs based on Role
 const getAvailableIdsForRole = (role: AccountRole): string[] => {
   switch (role) {
     case 'Admin':
@@ -64,6 +68,113 @@ const getAvailableIdsForRole = (role: AccountRole): string[] => {
     default:
       return Array.from({ length: 100 }, (_, i) => (10001 + i).toString());
   }
+};
+
+/**
+ * Capacity Expansion Modal for Student and Teacher Seats
+ */
+const AddSeatsModal = ({ onClose, onSave, initialType }: { onClose: () => void, onSave: (data: any) => void, initialType: 'student' | 'teacher' }) => {
+  const [seatType, setSeatType] = useState<'student' | 'teacher'>(initialType);
+  const [selectedBranch, setSelectedBranch] = useState(MOCK_SCHOOLS[0].id);
+  const [selectedCourse, setSelectedCourse] = useState(MOCK_COURSES[0].id);
+  const [count, setCount] = useState(10);
+
+  return (
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-[#304B9E]/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl border-t-[12px] border-[#F05A28] p-10 flex flex-col gap-6 animate-in zoom-in-95 duration-300 relative">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-slate-50 rounded-xl">
+          <X size={20} strokeWidth={4} />
+        </button>
+        
+        <div className="text-center">
+           <div className="w-16 h-16 bg-blue-50 text-[#304B9E] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-indigo-100 rotate-3">
+              <Database size={32} strokeWidth={3} />
+           </div>
+           <h3 className="text-2xl font-black text-[#304B9E] uppercase tracking-tighter leading-none">Provision Capacity</h3>
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Existing Hub Resource Allocation</p>
+        </div>
+
+        <div className="space-y-4">
+           {/* Branch Selection */}
+           <div className="space-y-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Target School Branch</label>
+              <div className="relative">
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                <select 
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl pl-11 pr-10 py-3.5 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] appearance-none cursor-pointer"
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(e.target.value)}
+                >
+                  {MOCK_SCHOOLS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+              </div>
+           </div>
+
+           {/* Role Selection */}
+           <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setSeatType('student')}
+                className={`flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest border-2 transition-all ${seatType === 'student' ? 'bg-[#304B9E] border-[#304B9E] text-white shadow-lg' : 'bg-white border-slate-100 text-slate-400 hover:border-[#304B9E]'}`}
+              >
+                <GraduationCap size={16} /> Student Seats
+              </button>
+              <button 
+                onClick={() => setSeatType('teacher')}
+                className={`flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest border-2 transition-all ${seatType === 'teacher' ? 'bg-[#304B9E] border-[#304B9E] text-white shadow-lg' : 'bg-white border-slate-100 text-slate-400 hover:border-[#304B9E]'}`}
+              >
+                <UserCheck size={16} /> Teacher Seats
+              </button>
+           </div>
+
+           {/* Course Selection (Only for Students) */}
+           {seatType === 'student' && (
+             <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Program License</label>
+                <div className="relative">
+                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                  <select 
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl pl-11 pr-10 py-3.5 font-black text-[#304B9E] text-xs outline-none focus:border-[#F05A28] appearance-none cursor-pointer"
+                    value={selectedCourse}
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                  >
+                    {MOCK_COURSES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+                </div>
+             </div>
+           )}
+
+           {/* Volume Selector */}
+           <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between px-1">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Number of Seats to Add</label>
+                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${seatType === 'student' ? 'text-[#F05A28] bg-orange-50 border-orange-100' : 'text-blue-600 bg-blue-50 border-blue-100'}`}>
+                   Volume: {count}
+                 </span>
+              </div>
+              <div className="flex items-center gap-4">
+                 <button type="button" onClick={() => setCount(Math.max(1, count - 1))} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#F05A28] hover:border-[#F05A28] transition-all"><Minus size={20} strokeWidth={4} /></button>
+                 <div className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 text-center shadow-inner">
+                    <span className="text-2xl font-black text-[#304B9E]">{count}</span>
+                 </div>
+                 <button type="button" onClick={() => setCount(count + 1)} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#F05A28] hover:border-[#F05A28] transition-all"><Plus size={20} strokeWidth={4} /></button>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex gap-4 pt-4">
+           <button onClick={onClose} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95">Cancel</button>
+           <button 
+             onClick={() => onSave({ branch: selectedBranch, course: selectedCourse, count, type: seatType })}
+             className="flex-[2] py-5 bg-[#304B9E] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#00a651] transition-all border-b-6 border-black/10 active:scale-95 flex items-center justify-center gap-2"
+           >
+              <CheckCircle2 size={18} strokeWidth={3} /> Commit Expansion
+           </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const StudentProfilePopup = ({ user, onClose }: { user: any, onClose: () => void }) => {
@@ -224,20 +335,10 @@ const AssignUserModal = ({
   );
 };
 
-const EditAccountModal = ({ 
-  user, 
-  onClose, 
-  onSave 
-}: { 
-  user: any, 
-  onClose: () => void, 
-  onSave: (data: any) => void 
-}) => {
+const EditAccountModal = ({ user, onClose, onSave }: { user: any, onClose: () => void, onSave: (data: any) => void }) => {
   const [formData, setFormData] = useState({ ...user });
-
   const availableIds = useMemo(() => getAvailableIdsForRole(formData.role), [formData.role]);
 
-  // Sync ID if current one becomes invalid for new role
   useEffect(() => {
     if (!availableIds.includes(formData.userId)) {
       setFormData(prev => ({ ...prev, userId: availableIds[0] }));
@@ -380,7 +481,6 @@ const CreateAccountModal = ({ onClose, onSave, initialRole }: { onClose: () => v
 
   const availableIds = useMemo(() => getAvailableIdsForRole(formData.role), [formData.role]);
 
-  // Ensure userId is valid for selected role
   useEffect(() => {
     if (!availableIds.includes(formData.userId)) {
       setFormData(prev => ({ ...prev, userId: availableIds[0] }));
@@ -519,26 +619,24 @@ const CreateAccountModal = ({ onClose, onSave, initialRole }: { onClose: () => v
 
 export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ activeRole, checkPermission }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddSeatsOpen, setIsAddSeatsOpen] = useState(false);
+  const [seatTypeForModal, setSeatTypeForModal] = useState<'student' | 'teacher'>('student');
   const [assigningUserId, setAssigningUserId] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AccountRole>('Student'); 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('All Centers');
+  const [targetRoleForModal, setTargetRoleForModal] = useState<AccountRole>('Student');
   
   const isMainAdmin = activeRole === UserRole.MAIN_CENTER;
 
-  // Generating requested initial lists
   const initialAccounts = useMemo(() => {
     const list = [
-       // Admin
       { userId: 'AD1001', role: 'Admin', branch: 'EDULIGHT School', username: 'ADMIN_MASTER', password: generateRandomPassword(), status: 'Active' },
-      // Teachers
       { userId: 'TR10001', role: 'Teacher', branch: 'EDULIGHT School', username: '', password: generateRandomPassword(), status: 'Active' },
       { userId: 'TR10002', role: 'Teacher', branch: 'Westside Academy', username: '', password: generateRandomPassword(), status: 'Active' },
     ];
-
-    // Students 10001 - 10010
     for (let i = 1; i <= 10; i++) {
       list.push({
         userId: `${10000 + i}`,
@@ -549,7 +647,6 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
         status: 'Active'
       });
     }
-
     return list;
   }, []);
 
@@ -590,6 +687,24 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
     }
   };
 
+  const handleSaveSeats = (data: any) => {
+    const schoolName = MOCK_SCHOOLS.find(s => s.id === data.branch)?.name;
+    const courseName = MOCK_COURSES.find(c => c.id === data.course)?.name;
+    
+    alert(`Hub Capacity Expanded!\n\nTarget Hub: ${schoolName}\nProvisioned: ${data.count} new ${data.type} slots.` + (data.type === 'student' ? `\nAssigned Program: ${courseName}` : ''));
+    setIsAddSeatsOpen(false);
+  };
+
+  const openCreateWithRole = (role: AccountRole) => {
+    setTargetRoleForModal(role);
+    setIsModalOpen(true);
+  };
+
+  const openSeatModal = (type: 'student' | 'teacher') => {
+    setSeatTypeForModal(type);
+    setIsAddSeatsOpen(true);
+  };
+
   const filteredAccounts = useMemo(() => {
     return accounts.filter(acc => {
       const matchesTab = acc.role === activeTab;
@@ -618,7 +733,15 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
         <CreateAccountModal 
           onClose={() => setIsModalOpen(false)} 
           onSave={handleSaveAccount} 
-          initialRole={activeTab}
+          initialRole={targetRoleForModal}
+        />
+      )}
+
+      {isAddSeatsOpen && (
+        <AddSeatsModal 
+          initialType={seatTypeForModal}
+          onClose={() => setIsAddSeatsOpen(false)}
+          onSave={handleSaveSeats}
         />
       )}
 
@@ -637,6 +760,7 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
         />
       )}
 
+      {/* FIXED: Fixed syntax for onAssign prop and passed handleAssignUser handler */}
       {assigningUserId && (
         <AssignUserModal 
           targetId={assigningUserId}
@@ -658,9 +782,17 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
            </div>
         </div>
         
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center gap-3 relative z-10">
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsAddSeatsOpen(true)}
+            className="p-3 bg-[#F05A28] text-white rounded-xl shadow-lg border-b-4 border-black/10 hover:bg-white hover:text-[#F05A28] transition-all active:scale-90 flex items-center justify-center"
+            title="Provision More Seats to Schools"
+          >
+            <PlusSquare size={24} strokeWidth={3} />
+          </button>
+          
+          <button 
+            onClick={() => openCreateWithRole(activeTab)}
             className="px-8 py-3.5 bg-white text-[#304B9E] rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-[#F05A28] hover:text-white transition-all border-b-4 border-black/10 flex items-center gap-3 active:scale-95"
           >
             <UserPlus size={18} strokeWidth={3} />
@@ -669,33 +801,52 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
         </div>
       </div>
 
-      {/* Global Center Name Filter - Only for Main Center Admin */}
+      {/* NEW Seat Management Button Bar - "Add to Existing Schools" focus */}
+      {isMainAdmin && (
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 py-2 animate-in slide-in-from-top-2 duration-300">
+           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest sm:mr-2">Expand Existing Hubs:</div>
+           <div className="flex gap-4">
+              <button 
+                onClick={() => openSeatModal('student')}
+                className="px-8 py-4 bg-white text-[#304B9E] border-2 border-[#304B9E] rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-[#304B9E] hover:text-white transition-all active:scale-95 flex items-center gap-3 border-b-4 border-slate-100"
+              >
+                  <PlusSquare size={16} strokeWidth={3} className="text-[#F05A28]" /> Add Student Seats
+              </button>
+              <button 
+                onClick={() => openSeatModal('teacher')}
+                className="px-8 py-4 bg-white text-[#F05A28] border-2 border-[#F05A28] rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-[#F05A28] hover:text-white transition-all active:scale-95 flex items-center gap-3 border-b-4 border-slate-100"
+              >
+                  <UserPlus size={16} strokeWidth={3} className="text-[#304B9E]" /> Add Teacher Seats
+              </button>
+           </div>
+        </div>
+      )}
+
+      {/* Global Center Name Filter */}
       {isMainAdmin && (
         <div className="w-full flex justify-center flex-shrink-0 animate-in slide-in-from-top-4 duration-500 mb-2">
-           <div className="bg-white px-8 py-4 rounded-[2.5rem] border border-slate-100 shadow-[0_15px_40px_-10px_rgba(48,75,158,0.15)] flex flex-col sm:flex-row items-center gap-4 group hover:border-[#304B9E]/20 transition-all">
+           <div className="bg-white px-8 py-4 rounded-[2.5rem] border border-slate-100 shadow-[0_15px_40px_-10px_rgba(48,75,158,0.15)] flex flex-col sm:flex-row items-center gap-4">
               <div className="flex items-center gap-3 text-[#304B9E] font-black text-[11px] uppercase tracking-[0.2em]">
-                 <div className="p-2 bg-indigo-50 text-[#304B9E] rounded-xl group-hover:bg-[#304B9E] group-hover:text-white transition-all">
-                   <Building2 size={18} strokeWidth={3} />
-                 </div>
+                 <div className="p-2 bg-indigo-50 text-[#304B9E] rounded-xl"><Building2 size={18} strokeWidth={3} /></div>
                  Select Registry Hub:
               </div>
               <div className="relative min-w-[280px]">
-                 <Filter size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+                 <Filter size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                  <select 
                     value={selectedBranch}
                     onChange={(e) => setSelectedBranch(e.target.value)}
-                    className="w-full bg-slate-50 pl-11 pr-10 py-3.5 rounded-2xl border-2 border-slate-100 font-black text-xs uppercase text-[#304B9E] outline-none appearance-none cursor-pointer focus:border-[#F05A28] transition-all hover:bg-slate-100 shadow-inner"
+                    className="w-full bg-slate-50 pl-11 pr-10 py-3.5 rounded-2xl border-2 border-slate-100 font-black text-xs uppercase text-[#304B9E] outline-none focus:border-[#F05A28] transition-all"
                  >
                     <option value="All Centers">All Registry Centers</option>
                     {MOCK_SCHOOLS.map(s => <option key={s.id} value={s.name}>{s.name} - Hub {s.id}</option>)}
                  </select>
-                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-[#F05A28] transition-colors pointer-events-none" />
+                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
            </div>
         </div>
       )}
 
-      {/* Role Switcher Button Bar - Unified Blue and Orange */}
+      {/* Role Switcher */}
       <div className="flex justify-center flex-shrink-0 mb-2">
         <div className="flex bg-white p-1.5 rounded-[2rem] border border-slate-100 shadow-xl relative z-10">
           {[
@@ -715,9 +866,10 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
         </div>
       </div>
 
+      {/* Directory Table */}
       <div className="flex-1 bg-white rounded-3xl border border-slate-100 shadow-xl flex flex-col overflow-hidden">
-        <div className="p-3 border-b border-slate-100 bg-slate-50/30 flex items-center">
-           <div className="flex-1 flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-100 w-full focus-within:border-[#F05A28] transition-all shadow-sm">
+        <div className="p-3 border-b border-slate-100 bg-slate-50/30 flex items-center gap-3">
+           <div className="flex-1 flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-100 focus-within:border-[#F05A28] transition-all shadow-sm">
              <Search size={18} className="text-slate-300" strokeWidth={3} />
              <input 
               placeholder={`Search in ${activeTab} list...`} 
@@ -761,70 +913,28 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
                           <span className="font-black text-[#304B9E] text-xs uppercase tracking-tight">{acc.username}</span>
                        </div>
                     ) : (
-                       <button 
-                        onClick={() => setAssigningUserId(acc.userId)}
-                        className="group/btn px-3 py-2 bg-white border-2 border-dashed border-slate-200 rounded-xl hover:border-[#F05A28] hover:bg-orange-50 transition-all flex items-center gap-2"
-                       >
+                       <button onClick={() => setAssigningUserId(acc.userId)} className="group/btn px-3 py-2 bg-white border-2 border-dashed border-slate-200 rounded-xl hover:border-[#F05A28] hover:bg-orange-50 transition-all flex items-center gap-2">
                           <UserPlus size={14} className="text-slate-300 group-hover/btn:text-[#F05A28]" />
                           <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest group-hover/btn:text-[#F05A28]">Pending Setup</span>
                        </button>
                     )}
                   </td>
                   <td className="px-8 py-5">
-                    <div className="flex items-center gap-2 group/pass">
+                    <div className="flex items-center gap-2">
                       <Lock size={12} className="text-slate-300" />
-                      <span className="font-mono text-xs text-slate-400 font-bold select-all bg-slate-50 px-2 py-0.5 rounded border border-slate-100 group-hover/pass:text-[#304B9E] transition-colors">{acc.password}</span>
+                      <span className="font-mono text-xs text-slate-400 font-bold select-all bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{acc.password}</span>
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => setViewingProfileId(acc.userId)}
-                        className="p-2 text-slate-300 hover:text-[#304B9E] transition-all bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md active:scale-90"
-                        title="View Detailed Profile"
-                      >
-                        <User size={16} strokeWidth={3} />
-                      </button>
-
-                      <button 
-                        onClick={() => handleResetPassword(acc.userId)}
-                        className="p-2 text-slate-300 hover:text-emerald-500 transition-all bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md active:scale-90"
-                        title="Reset Password"
-                      >
-                        <RefreshCw size={16} strokeWidth={3} />
-                      </button>
-                      
-                      {canEdit && (
-                        <button 
-                          onClick={() => setEditingUserId(acc.userId)}
-                          className="p-2 text-slate-300 hover:text-[#304B9E] transition-all bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md active:scale-90"
-                          title="Edit Credentials"
-                        >
-                          <Edit size={16} strokeWidth={3} />
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button 
-                          onClick={() => handleDeleteAccount(acc.userId)}
-                          className="p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md active:scale-90"
-                          title="Revoke Access"
-                        >
-                          <Trash2 size={16} strokeWidth={3} />
-                        </button>
-                      )}
+                      <button onClick={() => setViewingProfileId(acc.userId)} className="p-2 text-slate-300 hover:text-[#304B9E] transition-all bg-white border border-slate-100 rounded-lg shadow-sm" title="View Profile"><User size={16} strokeWidth={3} /></button>
+                      <button onClick={() => handleResetPassword(acc.userId)} className="p-2 text-slate-300 hover:text-emerald-500 transition-all bg-white border border-slate-100 rounded-lg shadow-sm" title="Reset Password"><RefreshCw size={16} strokeWidth={3} /></button>
+                      {canEdit && <button onClick={() => setEditingUserId(acc.userId)} className="p-2 text-slate-300 hover:text-[#304B9E] transition-all bg-white border border-slate-100 rounded-lg shadow-sm" title="Edit"><Edit size={16} strokeWidth={3} /></button>}
+                      {canDelete && <button onClick={() => handleDeleteAccount(acc.userId)} className="p-2 text-slate-300 hover:text-[#ec2027] transition-all bg-white border border-slate-100 rounded-lg shadow-sm" title="Delete"><Trash2 size={16} strokeWidth={3} /></button>}
                     </div>
                   </td>
                 </tr>
               ))}
-              {filteredAccounts.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-20 text-center opacity-20">
-                    <ShieldCheck size={64} className="mx-auto text-slate-300 mb-4" />
-                    <h4 className="text-xl font-black text-[#304B9E] uppercase tracking-widest">No matching {activeTab} accounts</h4>
-                    {selectedBranch !== 'All Centers' && <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">In branch: {selectedBranch}</p>}
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -833,12 +943,10 @@ export const AccountCreationView: React.FC<AccountCreationViewProps> = ({ active
       <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <ShieldCheck size={16} className="text-emerald-500" />
-          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Global Synchronization via DIR-SEC Protocol</p>
+          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Global Synchronization Active</p>
         </div>
         <div className="flex items-center gap-3">
            <p className="text-[9px] font-black text-[#304B9E] uppercase tracking-widest">Provisioned Nodes: {accounts.length}</p>
-           <div className="w-px h-3 bg-slate-200"></div>
-           <p className="text-[9px] font-black text-[#F05A28] uppercase tracking-widest">Current View: {filteredAccounts.length}</p>
         </div>
       </div>
     </div>

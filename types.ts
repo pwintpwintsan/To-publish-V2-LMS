@@ -1,5 +1,4 @@
 
-
 export enum UserRole {
   MAIN_CENTER = 'main-center',
   SUPER_ADMIN = 'super-admin',
@@ -38,12 +37,27 @@ export interface QuizQuestion {
   correctAnswer: number;
 }
 
+export interface MatchingPair {
+  id: string;
+  left: string;
+  right: string;
+}
+
+export interface FillBlankData {
+  text: string; // e.g. "The [blank] jumped over the [blank]."
+  answers: string[]; // e.g. ["cat", "fence"]
+}
+
 export interface Lesson {
   id: string;
   title: string;
-  type: 'video' | 'text' | 'quiz' | 'assignment';
+  type: 'video' | 'text' | 'pdf' | 'quiz' | 'assignment' | 'matching' | 'fill-blanks' | 'question-answer';
+  description?: string;
   content?: string;
   quiz?: QuizQuestion[];
+  matchingPairs?: MatchingPair[];
+  fillBlanks?: FillBlankData;
+  questions?: string[]; // For 'question-answer' type
   assignmentInstructions?: string;
   characterLimit?: number;
   modelAnswer?: string;
@@ -55,6 +69,7 @@ export interface Lesson {
 export interface Module {
   id: string;
   title: string;
+  description?: string;
   lessons: Lesson[];
   isPublished?: boolean;
 }
@@ -66,6 +81,8 @@ export interface Course {
   thumbnail: string;
   description?: string;
   category?: string;
+  // Fix: Added subCategory property to Course interface to resolve property mismatch errors in constants.tsx and CoursesAdminView.tsx
+  subCategory?: string;
   level?: string;
   duration?: string;
   modules: Module[];
@@ -88,7 +105,6 @@ export interface School {
   approvedCourseIds: string[];
   description?: string;
   establishedDate?: string;
-  // Fix: changed facilities from a restrictive tuple type to a string array to allow varying facilities per school
   facilities?: string[];
   contactPerson?: string;
   contactPhone?: string;
